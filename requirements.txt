@@ -1,0 +1,6 @@
+# Runtime for the API (Vercel Python function). Kept small on purpose:
+# the ML stack lives in pipeline/requirements.txt and runs in GitHub Actions.
+fastapi==0.162.0
+pydantic==2.14.2
+PyJWT==2.15.1
+psycopg[binary]==3.3.8

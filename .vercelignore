@@ -1,0 +1,9 @@
+frontend/node_modules
+frontend/dist
+pipeline
+tests
+data/raw
+data/local.db
+docs
+**/__pycache__
+.github
