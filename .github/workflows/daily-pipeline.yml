@@ -53,6 +53,12 @@ jobs:
           git pull --rebase
           git push
 
+      - name: Trigger Vercel deploy (optional deploy hook)
+        env:
+          VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -n "$VERCEL_DEPLOY_HOOK" ]; then curl -fsS -X POST "$VERCEL_DEPLOY_HOOK" > /dev/null && echo "deploy triggered"; else echo "no deploy hook set"; fi
+
       - name: Record a failed run
         if: failure()
         run: |

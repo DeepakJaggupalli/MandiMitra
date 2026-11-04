@@ -7,7 +7,7 @@ eight Andhra Pradesh markets (Madanapalle, Pattikonda, Kurnool, Anantapur, Kadap
 today's price, the trend, a **7-day price range**, the **best market after transport and commission**, and the
 **reasons** behind each result, in **Telugu or English**, by voice or text. It only advises; the farmer decides.
 
-- **Live app:** _added after deployment_
+- **Live app:** https://mandimitra-alpha.vercel.app
 - **API docs (OpenAPI):** `/api/docs` on the live app
 - **Design document:** C2-17 Solution Design Document v1.0 (13 Oct 2026)
 
@@ -77,10 +77,11 @@ The accuracy report is regenerated on every pipeline run and shown in the app (D
 
 | Measure | Target | Result |
 |---|---|---|
-| Forecast error vs best simple baseline | ≥ 10% lower MAPE | _filled from latest run_ |
-| Actual prices inside the 80% range | about 80% | _filled from latest run_ |
-| Direction of movement | ≥ 6 in 10 | _filled from latest run_ |
-| Assistant test questions | ≥ 85% correct, no made-up numbers | _filled from latest run_ |
+| Forecast error vs best simple baseline | ≥ 10% lower MAPE | 14.9% lower (LightGBM 10.4% vs last-price 12.2%) |
+| Actual prices inside the 80% range | about 80% | 78.9% |
+| Direction of movement | ≥ 6 in 10 | 7.2 in 10 (1,752 clear moves) |
+| Assistant test questions | ≥ 85% correct, no made-up numbers | 50 / 50, 0 made-up numbers |
+| Ease of use (8 of 10 users understand the price card) | field test | pending |
 
 These numbers prove the pipeline end to end; they must be re-measured on real AGMARKNET data before any claim.
 
@@ -104,7 +105,9 @@ Demo staff accounts (change them with `STAFF_USERS` in production): `officer / o
 - **Vercel** serves the built PWA (`frontend/dist`) and the FastAPI app as one Python function (`api/index.py`,
   rewrites in `vercel.json`).
 - **GitHub Actions**: `ci.yml` runs tests and the frontend build; `daily-pipeline.yml` runs the agents at 09:30 and
-  18:00 IST, commits the new `data/processed` files, and Vercel redeploys.
+  18:00 IST and commits the new `data/processed` files. Vercel redeploys through its Git integration, or through a
+  deploy hook if the `VERCEL_DEPLOY_HOOK` secret is set (needed for private repos on the Hobby plan, where commits
+  by the Actions bot are not deployed automatically).
 
 Environment variables (all optional except `JWT_SECRET` in production):
 
