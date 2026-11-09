@@ -1406,6 +1406,7 @@ date,market,rain_mm,tmax_c
 2026-11-05,anantapur,0.00,31.70
 2026-11-06,anantapur,1.30,30.50
 2026-11-07,anantapur,0.50,31.10
+2026-11-08,anantapur,3.50,30.60
 2023-01-01,kadapa,0.00,33.20
 2023-01-02,kadapa,0.00,32.00
 2023-01-03,kadapa,0.00,31.70
@@ -2813,6 +2814,7 @@ date,market,rain_mm,tmax_c
 2026-11-05,kadapa,2.10,31.90
 2026-11-06,kadapa,3.10,31.20
 2026-11-07,kadapa,2.50,31.80
+2026-11-08,kadapa,1.30,32.80
 2023-01-01,kurnool,0.00,32.20
 2023-01-02,kurnool,0.00,31.40
 2023-01-03,kurnool,0.00,30.90
@@ -4220,6 +4222,7 @@ date,market,rain_mm,tmax_c
 2026-11-05,kurnool,0.80,32.10
 2026-11-06,kurnool,2.10,32.70
 2026-11-07,kurnool,3.70,32.80
+2026-11-08,kurnool,0.40,32.00
 2023-01-01,madanapalle,0.00,26.60
 2023-01-02,madanapalle,0.00,25.90
 2023-01-03,madanapalle,0.00,26.10
@@ -5627,6 +5630,7 @@ date,market,rain_mm,tmax_c
 2026-11-05,madanapalle,3.40,28.30
 2026-11-06,madanapalle,9.00,26.60
 2026-11-07,madanapalle,1.80,27.80
+2026-11-08,madanapalle,1.50,27.70
 2023-01-01,pattikonda,0.00,31.30
 2023-01-02,pattikonda,0.00,31.10
 2023-01-03,pattikonda,0.00,30.60
@@ -7034,6 +7038,7 @@ date,market,rain_mm,tmax_c
 2026-11-05,pattikonda,0.10,32.20
 2026-11-06,pattikonda,1.80,32.70
 2026-11-07,pattikonda,2.80,32.30
+2026-11-08,pattikonda,1.70,31.70
 2023-01-01,pulivendula,0.00,31.80
 2023-01-02,pulivendula,0.00,31.60
 2023-01-03,pulivendula,0.00,30.60
@@ -8441,6 +8446,7 @@ date,market,rain_mm,tmax_c
 2026-11-05,pulivendula,1.90,31.70
 2026-11-06,pulivendula,2.70,31.20
 2026-11-07,pulivendula,1.60,31.70
+2026-11-08,pulivendula,4.20,32.50
 2023-01-01,tirupati,0.00,28.70
 2023-01-02,tirupati,0.00,28.60
 2023-01-03,tirupati,0.80,26.90
@@ -9848,6 +9854,7 @@ date,market,rain_mm,tmax_c
 2026-11-05,tirupati,9.30,29.30
 2026-11-06,tirupati,17.90,28.90
 2026-11-07,tirupati,1.20,29.90
+2026-11-08,tirupati,3.60,29.10
 2023-01-01,vijayawada,0.00,32.00
 2023-01-02,vijayawada,0.30,30.70
 2023-01-03,vijayawada,0.00,30.80
@@ -11255,3 +11262,4 @@ date,market,rain_mm,tmax_c
 2026-11-05,vijayawada,4.20,30.30
 2026-11-06,vijayawada,0.50,31.70
 2026-11-07,vijayawada,2.50,31.30
+2026-11-08,vijayawada,0.80,31.80
