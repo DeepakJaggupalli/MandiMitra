@@ -1411,7 +1411,7 @@ date,market,rain_mm,tmax_c
 2026-11-10,anantapur,0.00,30.20
 2026-11-11,anantapur,0.00,29.90
 2026-11-12,anantapur,0.00,29.90
-2026-11-13,anantapur,0.00,29.60
+2026-11-13,anantapur,0.00,29.50
 2026-11-14,anantapur,0.00,29.70
 2026-11-15,anantapur,0.00,29.20
 2026-11-16,anantapur,0.00,29.80
@@ -2830,8 +2830,8 @@ date,market,rain_mm,tmax_c
 2026-11-10,kadapa,0.00,33.20
 2026-11-11,kadapa,0.00,33.20
 2026-11-12,kadapa,0.00,33.00
-2026-11-13,kadapa,0.10,32.30
-2026-11-14,kadapa,0.00,33.70
+2026-11-13,kadapa,0.10,31.90
+2026-11-14,kadapa,0.00,33.80
 2026-11-15,kadapa,0.00,32.70
 2026-11-16,kadapa,0.00,32.00
 2026-11-17,kadapa,0.00,33.10
@@ -4250,7 +4250,7 @@ date,market,rain_mm,tmax_c
 2026-11-11,kurnool,0.00,31.60
 2026-11-12,kurnool,0.00,32.20
 2026-11-13,kurnool,0.00,32.20
-2026-11-14,kurnool,0.00,32.60
+2026-11-14,kurnool,0.00,32.50
 2026-11-15,kurnool,0.00,32.60
 2026-11-16,kurnool,0.00,32.10
 2026-11-17,kurnool,0.00,32.20
@@ -5668,7 +5668,7 @@ date,market,rain_mm,tmax_c
 2026-11-10,madanapalle,0.00,27.90
 2026-11-11,madanapalle,0.00,27.80
 2026-11-12,madanapalle,0.00,27.40
-2026-11-13,madanapalle,0.50,26.00
+2026-11-13,madanapalle,0.50,25.90
 2026-11-14,madanapalle,0.00,27.80
 2026-11-15,madanapalle,0.00,26.60
 2026-11-16,madanapalle,0.00,27.00
@@ -8502,11 +8502,11 @@ date,market,rain_mm,tmax_c
 2026-11-06,pulivendula,2.70,31.20
 2026-11-07,pulivendula,1.60,31.70
 2026-11-08,pulivendula,4.20,32.50
-2026-11-09,pulivendula,0.90,31.90
+2026-11-09,pulivendula,0.90,31.80
 2026-11-10,pulivendula,0.00,31.50
 2026-11-11,pulivendula,0.00,31.40
 2026-11-12,pulivendula,0.00,31.40
-2026-11-13,pulivendula,0.00,31.20
+2026-11-13,pulivendula,0.00,31.00
 2026-11-14,pulivendula,0.00,31.70
 2026-11-15,pulivendula,0.00,31.10
 2026-11-16,pulivendula,0.00,31.00
@@ -9922,7 +9922,7 @@ date,market,rain_mm,tmax_c
 2026-11-07,tirupati,1.20,29.90
 2026-11-08,tirupati,3.60,29.10
 2026-11-09,tirupati,3.40,28.90
-2026-11-10,tirupati,0.20,29.60
+2026-11-10,tirupati,0.20,29.50
 2026-11-11,tirupati,0.00,29.70
 2026-11-12,tirupati,0.00,29.60
 2026-11-13,tirupati,2.00,28.80
@@ -11344,7 +11344,7 @@ date,market,rain_mm,tmax_c
 2026-11-10,vijayawada,0.00,31.00
 2026-11-11,vijayawada,0.00,30.80
 2026-11-12,vijayawada,0.00,31.10
-2026-11-13,vijayawada,0.70,30.80
+2026-11-13,vijayawada,0.70,30.90
 2026-11-14,vijayawada,0.00,31.20
 2026-11-15,vijayawada,0.00,31.30
 2026-11-16,vijayawada,0.00,31.40
