@@ -112,7 +112,32 @@ def load_csv_exports(log: RunLog) -> pd.DataFrame:
 
 
 # ----------------------------------------------------------------------------- data.gov.in OGD API
+def _relay_get(resource: str, filters: dict, limit: int, offset: int) -> dict:
+    """Fetch through the app's Mumbai relay (data.gov.in refuses servers outside India, such as GitHub Actions)."""
+    params = {"resource": "history" if resource == OGD_HISTORY else "current", "limit": limit, "offset": offset}
+    commodity = filters.get("Commodity") or filters.get("commodity")
+    if commodity:
+        params["commodity"] = commodity
+    if filters.get("Arrival_Date"):
+        params["day"] = filters["Arrival_Date"]
+    last_exc = None
+    for _attempt in range(3):
+        try:
+            r = requests.get(os.environ["OGD_RELAY_URL"], params=params, timeout=60,
+                             headers={"x-ingest-token": os.environ.get("OGD_RELAY_TOKEN", ""), "User-Agent": "MandiMitra-pipeline/1.0"})
+            if r.status_code == 200:
+                return r.json()
+            last_exc = f"relay HTTP {r.status_code}: {r.text[:200]}"
+            if r.status_code in (400, 403):
+                break
+        except (requests.RequestException, ValueError) as exc:
+            last_exc = exc
+    raise RuntimeError(f"relay failed: {last_exc}")
+
+
 def _ogd_get(resource: str, key: str, filters: dict, limit: int, offset: int) -> dict:
+    if os.environ.get("OGD_RELAY_URL"):
+        return _relay_get(resource, filters, limit, offset)
     params = {"api-key": key, "format": "json", "limit": limit, "offset": offset}
     params.update({f"filters[{k}]": v for k, v in filters.items()})
     last_exc = None
@@ -185,7 +210,7 @@ def fetch_datagovin(catalog: dict, log: RunLog, history: bool) -> pd.DataFrame:
     """
     key = os.environ.get("DATA_GOV_IN_API_KEY", "").strip()
     old = _read_cache()
-    if not key:
+    if not key and not os.environ.get("OGD_RELAY_URL"):
         return old
     state = catalog["state"]
     names = [n for c in catalog["crops"] for n in OGD_COMMODITIES.get(c["id"], [c["en"]])]

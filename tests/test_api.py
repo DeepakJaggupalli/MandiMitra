@@ -163,3 +163,14 @@ def test_accuracy_report():
     assert {"accuracy", "coverage", "direction", "assistant", "ease"} <= keys
     assert 0.0 <= a["overall"]["coverage"] <= 1.0
     assert a["series"] and all("production_model" in s for s in a["series"])
+
+
+def test_ingest_relay_is_locked_down(monkeypatch):
+    assert client.get("/api/ingest/ogd", params={"resource": "history"}).status_code == 403  # no token configured
+    monkeypatch.setenv("INGEST_TOKEN", "relay-test-token")
+    monkeypatch.setenv("DATA_GOV_IN_API_KEY", "dummy")
+    assert client.get("/api/ingest/ogd", params={"resource": "history"}).status_code == 403  # wrong / missing header
+    h = {"x-ingest-token": "relay-test-token"}
+    assert client.get("/api/ingest/ogd", params={"resource": "anything"}, headers=h).status_code == 400
+    assert client.get("/api/ingest/ogd", params={"resource": "history", "commodity": "Cotton"}, headers=h).status_code == 400
+    assert client.get("/api/ingest/ogd", params={"resource": "history", "day": "2026-11-27"}, headers=h).status_code == 400

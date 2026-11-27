@@ -36,6 +36,8 @@ jobs:
       - name: Run pipeline
         env:
           DATA_GOV_IN_API_KEY: ${{ secrets.DATA_GOV_IN_API_KEY }}
+          OGD_RELAY_URL: ${{ secrets.OGD_RELAY_URL }}
+          OGD_RELAY_TOKEN: ${{ secrets.OGD_RELAY_TOKEN }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           if [ "${{ inputs.history }}" = "true" ]; then python -m pipeline.run --history; else python -m pipeline.run; fi

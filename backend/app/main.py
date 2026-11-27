@@ -1,7 +1,12 @@
 """MandiMitra API (FastAPI). Runs locally with uvicorn and on Vercel as a Python function."""
 from __future__ import annotations
 
+import hmac
 import json
+import os
+import re
+import urllib.parse
+import urllib.request
 from datetime import date
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
@@ -359,6 +364,44 @@ def bulletins_review(bid: int, body: ReviewIn, user=Depends(require("officer", "
     db.execute("UPDATE bulletins SET status = ?, reviewed_by = ?, reviewed_at = ? WHERE id = ?", (status, user["username"], now(), bid))
     db.audit("alert_agent", "review_bulletin", f"bulletin {bid} -> {status}", actor=user["username"])
     return db.query("SELECT * FROM bulletins WHERE id = ?", (bid,))[0]
+
+
+# ------------------------------------------------------------------ data relay
+# data.gov.in refuses connections from servers outside India (e.g. GitHub Actions). The daily pipeline therefore
+# fetches through this endpoint, which runs in Vercel's Mumbai region. It is not an open proxy: it needs the
+# INGEST_TOKEN secret and only relays the two AGMARKNET price resources for Andhra Pradesh tomato, onion and banana.
+OGD_RELAY = {"history": "35985678-0d79-46b4-9ed6-6f13308a1d24", "current": "9ef84268-d588-465a-a308-a864a43d0070"}
+RELAY_COMMODITIES = {"Tomato", "Onion", "Banana"}
+
+
+@app.get("/api/ingest/ogd")
+def ingest_ogd(request: Request, resource: str, offset: int = Query(0, ge=0, le=200000), limit: int = Query(1000, ge=1, le=1000),
+               commodity: str | None = None, day: str | None = None):
+    token, key = os.environ.get("INGEST_TOKEN", ""), os.environ.get("DATA_GOV_IN_API_KEY", "")
+    if not token or not key or not hmac.compare_digest(request.headers.get("x-ingest-token", ""), token):
+        raise HTTPException(403, "Not allowed")
+    if resource not in OGD_RELAY:
+        raise HTTPException(400, "Unknown resource")
+    params = {"api-key": key, "format": "json", "limit": limit, "offset": offset}
+    if resource == "history":
+        params["filters[State]"] = "Andhra Pradesh"
+        if commodity:
+            if commodity not in RELAY_COMMODITIES:
+                raise HTTPException(400, "Unknown commodity")
+            params["filters[Commodity]"] = commodity
+        if day:
+            if not re.fullmatch(r"\d{2}-\d{2}-\d{4}", day):
+                raise HTTPException(400, "day must be dd-mm-yyyy")
+            params["filters[Arrival_Date]"] = day
+    else:
+        params["filters[state.keyword]"] = "Andhra Pradesh"
+    url = "https://api.data.gov.in/resource/" + OGD_RELAY[resource] + "?" + urllib.parse.urlencode(params)
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "MandiMitra-relay/1.0"}), timeout=25) as r:
+            data = json.loads(r.read())
+    except Exception as exc:
+        raise HTTPException(502, f"data.gov.in unreachable from the relay: {exc}")
+    return {k: data.get(k) for k in ("status", "message", "total", "count", "offset", "records")}
 
 
 # ------------------------------------------------------------------ admin
