@@ -18,6 +18,13 @@ export function Layout({ children }: { children: ReactNode }) {
             <small>{t('tagline')}</small>
           </span>
         </Link>
+        <nav className="topnav" aria-label="Main">
+          <NavLink to="/" end>{t('navPrices')}</NavLink>
+          <NavLink to="/markets">{t('navMarkets')}</NavLink>
+          <NavLink to="/ask">{t('navAsk')}</NavLink>
+          <NavLink to="/alerts">{t('navAlerts')}</NavLink>
+          <NavLink to="/dashboard">{t('navDashboard')}</NavLink>
+        </nav>
         <div className="topbar-actions">
           <button className="btn btn-lang" onClick={() => setLang(lang === 'te' ? 'en' : 'te')} aria-label="Change language / భాష మార్చండి">
             {t('langToggle')}

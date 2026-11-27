@@ -5,7 +5,7 @@ import { CompareMarkets } from '../components/CompareMarkets'
 export function MarketsPage() {
   const { t } = useApp()
   return (
-    <div className="page">
+    <div className="page page-wide">
       <h1 className="page-title">{t('whereToSell')}</h1>
       <Card>
         <CompareMarkets unit="qtl" showMap showAlert storageKey="mm_compare" />

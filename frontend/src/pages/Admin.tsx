@@ -308,7 +308,7 @@ export default function AdminPage() {
   const { t, user } = useApp()
   if (!user || user.role !== 'admin') {
     return (
-      <div className="page">
+      <div className="page page-wide">
         <h1 className="page-title">{t('adminTitle')}</h1>
         <div className="callout">
           {t('adminOnly')} <Link to="/login">{t('navLogin')}</Link>
@@ -317,7 +317,7 @@ export default function AdminPage() {
     )
   }
   return (
-    <div className="page">
+    <div className="page page-wide">
       <h1 className="page-title">{t('adminTitle')}</h1>
       <Quality />
       <PipelineLog />

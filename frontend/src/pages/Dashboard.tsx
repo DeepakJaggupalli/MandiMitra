@@ -558,7 +558,7 @@ export default function DashboardPage() {
   const { t, user } = useApp()
   const staff = user && (user.role === 'officer' || user.role === 'admin')
   return (
-    <div className="page">
+    <div className="page page-wide">
       <h1 className="page-title">{t('dashboardTitle')}</h1>
       <Overview />
       <Card title={t('collectiveSale')}>
