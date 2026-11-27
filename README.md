@@ -10,6 +10,7 @@ farmer decides.
 
 - **Live app:** https://mandimitra-alpha.vercel.app
 - **API docs (OpenAPI):** `/api/docs` on the live app
+- **Project report:** [docs/PROJECT_REPORT.md](docs/PROJECT_REPORT.md) (Word: [docs/MandiMitra_Project_Report.docx](docs/MandiMitra_Project_Report.docx)) · **Slides:** [docs/MandiMitra_Presentation.pptx](docs/MandiMitra_Presentation.pptx)
 - **Design document:** C2-17 Solution Design Document v1.0 (13 Oct 2026)
 
 > **Data.** Prices are **real AGMARKNET data** (Directorate of Marketing & Inspection, Ministry of Agriculture & Farmers
@@ -117,7 +118,7 @@ AGMARKNET data** as of 27 Nov 2026, test window 30 Jul – 27 Nov 2026, 9 crop-m
 |---|---|---|
 | Actual prices inside the 80% range | about 80% | **83%** ✓ |
 | Rise / fall arrows correct | ≥ 6 in 10 | **60%** of 176 arrows shown ✓ (just at the target; an arrow was shown on 18% of days) |
-| Forecast error vs best simple baseline | ≥ 10% lower MAPE | **1.3% lower** (16.8% vs 17.1%) ✗ — LightGBM alone is 4.9% lower |
+| Forecast error vs best simple baseline | ≥ 10% lower MAPE | **1.2% lower** (16.8% vs 17.0%) ✗ — LightGBM alone is 4.9% lower |
 | Assistant test questions | ≥ 85% correct, no made-up numbers | 50 / 50 on the team's set; 37 / 40 on an independent reviewer's fresh set after fixing what it exposed (32 / 40 before) |
 | Daily update reliability | ≥ 95% of days | 24 / 24 tracked days |
 | Ease of use (8 of 10 users understand the price card) | field test | pending |
@@ -125,7 +126,7 @@ AGMARKNET data** as of 27 Nov 2026, test window 30 Jul – 27 Nov 2026, 9 crop-m
 Read these honestly: real tomato prices move a lot within a week (16–23% average error for every model, including "last
 price"), so the 10% improvement target is not met; the design document left the targets to be confirmed with the mentor
 once data quality was known. The model-selection rule was changed once (27 Nov 2026) after this test window had been
-seen, so the 1.3% is optimistic (the earlier rule gave 0.5%); the rule is now frozen and later weeks are a clean test.
+seen, so the 1.2% is optimistic (the earlier rule gave 0.5%); the rule is now frozen and later weeks are a clean test.
 
 **Independent audit (27 Nov 2026).** Four separate reviewers checked the build against the data:
 - every price the app shows matched the official records (90 / 90 recent day-records recomputed from the raw file, and
@@ -181,7 +182,7 @@ data/processed/           pipeline output served by the API
 data/assistant_eval.json  50 test questions with expected answers
 frontend/                 React + TypeScript PWA
 tests/                    pytest suite
-docs/                     API contract, data guide
+docs/                     project report (Markdown + Word), slides, API contract, data guide
 ```
 
 ## Limits and next steps
