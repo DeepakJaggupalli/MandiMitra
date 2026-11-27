@@ -12,7 +12,7 @@
     {
       "id": "onion", "en": "Onion", "te": "ఉల్లిపాయ", "shelf_life_days": 30,
       "peak_months": [9, 10, 11], "lean_months": [5, 6, 7],
-      "agmarknet_names": ["onion", "onion green", "onion (big)", "onion big", "onion small", "onion - local"],
+      "agmarknet_names": ["onion", "onion (big)", "onion big", "onion small", "onion - local"],
       "aliases": ["onion", "onions", "ulli", "ullipaya", "ullipayalu", "ullipaaya", "ulligadda", "ulligaddalu", "ullipay", "ullipayi", "erragadda", "pyaz", "pyaaz", "ఉల్లి", "ఉల్లిపాయ", "ఉల్లిపాయలు", "ఉల్లిగడ్డ", "ఉల్లిగడ్డలు", "ఎర్రగడ్డ"],
       "markets": ["kurnool", "anantapur", "kadapa", "madanapalle", "tirupati", "vijayawada"]
     },

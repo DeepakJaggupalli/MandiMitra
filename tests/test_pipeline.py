@@ -45,3 +45,22 @@ def test_conformal_quantiles_cover():
     test = rng.normal(0, 1, (5000, 7))
     cov = np.mean((test >= lo) & (test <= hi))
     assert 0.77 <= cov <= 0.83
+
+
+def test_ogd_paging_and_filter_fallback(monkeypatch):
+    from pipeline.sources import agmarknet as ag
+
+    rows = [{"State": "Andhra Pradesh", "District": "Kurnool", "Market": "Kurnool", "Commodity": "Onion", "Variety": "Local",
+             "Arrival_Date": f"{d:02d}/10/2026", "Min_Price": 1000, "Max_Price": 2000, "Modal_Price": 1500} for d in range(1, 26)]
+
+    def fake_get(resource, key, filters, limit, offset):
+        if "State" not in filters:  # only the title-case spelling works on this fake resource
+            return {"records": [], "total": 0}
+        limit = 10  # API caps page size below what we ask for
+        return {"records": rows[offset: offset + limit], "total": len(rows)}
+
+    monkeypatch.setattr(ag, "_ogd_get", fake_get)
+    frames, used = ag._ogd_pull("x", "k", [{"state": "AP"}, {"State": "AP"}])
+    assert used == {"State": "AP"} and sum(len(f) for f in frames) == 25
+    out = ag.map_columns(frames[0])
+    assert out.loc[0, "modal"] == 1500 and out.loc[0, "date"] == pd.Timestamp("2026-10-01")

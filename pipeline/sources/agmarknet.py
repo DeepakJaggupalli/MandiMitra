@@ -89,58 +89,88 @@ def load_csv_exports(log: RunLog) -> pd.DataFrame:
     return pd.concat(frames, ignore_index=True)[RAW_COLS] if frames else pd.DataFrame(columns=RAW_COLS)
 
 
-def _ogd_pages(resource: str, key: str, filters: dict, limit: int = 1000, max_pages: int = 200):
-    offset = 0
-    for _ in range(max_pages):
-        params = {"api-key": key, "format": "json", "limit": limit, "offset": offset}
-        params.update({f"filters[{k}]": v for k, v in filters.items()})
-        r = requests.get(OGD_BASE + resource, params=params, timeout=60, headers={"User-Agent": "MandiMitra-pipeline/1.0"})
+OGD_COMMODITIES = {"tomato": ["Tomato"], "onion": ["Onion"], "banana": ["Banana", "Banana - Green"]}
+
+
+def _ogd_get(resource: str, key: str, filters: dict, limit: int, offset: int) -> dict:
+    params = {"api-key": key, "format": "json", "limit": limit, "offset": offset}
+    params.update({f"filters[{k}]": v for k, v in filters.items()})
+    r = requests.get(OGD_BASE + resource, params=params, timeout=90, headers={"User-Agent": "MandiMitra-pipeline/1.0"})
+    try:
+        data = r.json()
+    except ValueError:
         r.raise_for_status()
-        records = r.json().get("records", [])
-        if not records:
+        raise RuntimeError(f"non-JSON reply ({r.status_code})")
+    if r.status_code >= 400 or str(data.get("status", "")).lower() == "error" or data.get("error"):
+        raise RuntimeError(f"data.gov.in said: {data.get('message') or data.get('error') or r.status_code}")
+    return data
+
+
+def _ogd_pages(resource: str, key: str, filters: dict, limit: int = 1000, max_pages: int = 300):
+    """Page through a resource. Stops on an empty page, at `total`, or if the API repeats a page."""
+    offset, first_prev = 0, None
+    for _ in range(max_pages):
+        data = _ogd_get(resource, key, filters, limit, offset)
+        records = data.get("records") or []
+        if not records or records[0] == first_prev:
             return
+        first_prev = records[0]
         yield records
-        if len(records) < limit:
+        offset += len(records)
+        total = data.get("total")
+        if total is not None and offset >= int(total):
             return
-        offset += limit
+
+
+def _ogd_pull(resource: str, key: str, variants: list[dict]) -> tuple[list[pd.DataFrame], dict | None]:
+    """Try filter spellings in turn (field names differ between resources); keep the first that returns rows."""
+    for filters in variants:
+        frames = [pd.DataFrame(page) for page in _ogd_pages(resource, key, filters)]
+        if frames:
+            return frames, filters
+    return [], None
 
 
 def fetch_datagovin(catalog: dict, log: RunLog, history: bool) -> pd.DataFrame:
-    """Official OGD API. History is pulled once per crop and market; later runs only add today's file."""
+    """Official OGD API (needs DATA_GOV_IN_API_KEY).
+
+    History (all Andhra Pradesh markets for each crop; name matching keeps our cluster) is pulled on the
+    first run, with --history, or when the cache is more than 3 days old. Other runs add the current-day file.
+    """
     key = os.environ.get("DATA_GOV_IN_API_KEY", "").strip()
     cache = CSV_DIR / "datagovin_cache.csv"
+    old = pd.read_csv(cache, parse_dates=["date"]) if cache.exists() else pd.DataFrame(columns=RAW_COLS)
     if not key:
-        return pd.read_csv(cache, parse_dates=["date"])[RAW_COLS] if cache.exists() else pd.DataFrame(columns=RAW_COLS)
+        return old[RAW_COLS] if not old.empty else pd.DataFrame(columns=RAW_COLS)
+    stale = old.empty or (pd.Timestamp.now().normalize() - old["date"].max()).days > 3
+    state = catalog["state"]
     frames = []
     try:
-        if history or not cache.exists():
+        if history or stale:
             for crop in catalog["crops"]:
-                for mid in crop["markets"]:
-                    market = next(m for m in catalog["markets"] if m["id"] == mid)
-                    got = 0
-                    for page in _ogd_pages(OGD_HISTORY, key, {"State": catalog["state"], "Commodity": crop["en"], "Market": market["en"]}):
-                        frames.append(pd.DataFrame(page))
-                        got += len(page)
-                    log.add("data_agent", "fetch_agmarknet", f"data.gov.in history {crop['id']}/{mid}: {got} records")
-        got = 0
-        for page in _ogd_pages(OGD_CURRENT, key, {"state.keyword": catalog["state"]}):
-            frames.append(pd.DataFrame(page))
-            got += len(page)
-        log.add("data_agent", "fetch_agmarknet", f"data.gov.in today's file for {catalog['state']}: {got} records")
+                for name in OGD_COMMODITIES.get(crop["id"], [crop["en"]]):
+                    got, used = _ogd_pull(OGD_HISTORY, key, [
+                        {"State": state, "Commodity": name},
+                        {"State.keyword": state, "Commodity.keyword": name},
+                        {"state": state, "commodity": name},
+                    ])
+                    frames += got
+                    log.add("data_agent", "fetch_agmarknet",
+                            f"data.gov.in history {name}: {sum(len(f) for f in got)} records" + (f" (filters {list(used)})" if used else ""))
+        got, used = _ogd_pull(OGD_CURRENT, key, [{"state.keyword": state}, {"state": state}, {"State": state}])
+        frames += got
+        log.add("data_agent", "fetch_agmarknet", f"data.gov.in current-day file for {state}: {sum(len(f) for f in got)} records")
     except Exception as exc:
         log.add("data_agent", "fetch_agmarknet", f"data.gov.in fetch failed: {exc}", level="warning")
     if frames:
         new = map_columns(pd.concat(frames, ignore_index=True))
         new["source"] = "AGMARKNET"
-        old = pd.read_csv(cache, parse_dates=["date"]) if cache.exists() else pd.DataFrame(columns=RAW_COLS)
         allr = pd.concat([old, new[RAW_COLS]], ignore_index=True)
         allr = allr.drop_duplicates(subset=["market_raw", "commodity_raw", "variety", "date"], keep="last")
         cache.parent.mkdir(parents=True, exist_ok=True)
         allr.to_csv(cache, index=False)
         return allr[RAW_COLS]
-    if cache.exists():
-        return pd.read_csv(cache, parse_dates=["date"])[RAW_COLS]
-    return pd.DataFrame(columns=RAW_COLS)
+    return old[RAW_COLS] if not old.empty else pd.DataFrame(columns=RAW_COLS)
 
 
 def load_real(catalog: dict, log: RunLog, history: bool = False) -> pd.DataFrame:
