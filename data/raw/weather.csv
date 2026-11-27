@@ -1790,6 +1790,7 @@ date,market,rain_mm,tmax_c
 2026-11-24,ambajipeta,8.00,30.40
 2026-11-25,ambajipeta,3.50,30.10
 2026-11-26,ambajipeta,2.70,30.10
+2026-11-27,ambajipeta,1.70,30.10
 2023-01-01,anantapur,0.00,31.20
 2023-01-02,anantapur,0.00,31.10
 2023-01-03,anantapur,0.00,30.40
@@ -5007,6 +5008,7 @@ date,market,rain_mm,tmax_c
 2026-11-24,bkothakota,21.40,27.10
 2026-11-25,bkothakota,10.30,27.00
 2026-11-26,bkothakota,2.20,28.50
+2026-11-27,bkothakota,1.60,29.40
 2022-01-01,guramkonda,2.60,25.20
 2022-01-02,guramkonda,0.00,26.60
 2022-01-03,guramkonda,0.00,26.50
@@ -10015,6 +10017,7 @@ date,market,rain_mm,tmax_c
 2026-11-24,kalikiri,16.90,27.20
 2026-11-25,kalikiri,5.80,26.90
 2026-11-26,kalikiri,1.80,28.50
+2026-11-27,kalikiri,1.20,29.70
 2022-01-01,kuppam,3.00,25.60
 2022-01-02,kuppam,0.00,25.40
 2022-01-03,kuppam,0.00,26.10
@@ -11806,6 +11809,7 @@ date,market,rain_mm,tmax_c
 2026-11-24,kuppam,7.80,26.80
 2026-11-25,kuppam,11.80,25.90
 2026-11-26,kuppam,0.50,27.60
+2026-11-27,kuppam,2.50,27.80
 2022-01-01,kurnool,0.00,31.20
 2022-01-02,kurnool,0.10,30.10
 2022-01-03,kurnool,0.00,29.70
@@ -13597,6 +13601,7 @@ date,market,rain_mm,tmax_c
 2026-11-24,kurnool,4.50,32.60
 2026-11-25,kurnool,1.70,30.50
 2026-11-26,kurnool,0.30,31.30
+2026-11-27,kurnool,0.60,32.40
 2022-01-01,madanapalle,3.60,24.70
 2022-01-02,madanapalle,0.20,26.00
 2022-01-03,madanapalle,0.00,25.30
@@ -15388,6 +15393,7 @@ date,market,rain_mm,tmax_c
 2026-11-24,madanapalle,13.60,26.60
 2026-11-25,madanapalle,8.20,25.90
 2026-11-26,madanapalle,2.00,27.00
+2026-11-27,madanapalle,2.00,28.00
 2022-01-01,mulakalacheruvu,3.80,25.90
 2022-01-02,mulakalacheruvu,0.00,26.90
 2022-01-03,mulakalacheruvu,0.00,26.00
@@ -17179,6 +17185,7 @@ date,market,rain_mm,tmax_c
 2026-11-24,mulakalacheruvu,10.90,27.50
 2026-11-25,mulakalacheruvu,8.80,27.00
 2026-11-26,mulakalacheruvu,1.10,29.10
+2026-11-27,mulakalacheruvu,1.40,29.80
 2022-01-01,palamaner,4.40,25.00
 2022-01-02,palamaner,0.30,25.90
 2022-01-03,palamaner,0.00,25.60
@@ -18970,6 +18977,7 @@ date,market,rain_mm,tmax_c
 2026-11-24,palamaner,17.60,27.00
 2026-11-25,palamaner,20.70,25.80
 2026-11-26,palamaner,1.20,27.50
+2026-11-27,palamaner,1.80,27.80
 2022-01-01,pattikonda,0.00,29.20
 2022-01-02,pattikonda,0.00,28.90
 2022-01-03,pattikonda,0.00,29.30
@@ -20761,6 +20769,7 @@ date,market,rain_mm,tmax_c
 2026-11-24,pattikonda,0.10,30.30
 2026-11-25,pattikonda,2.80,30.00
 2026-11-26,pattikonda,0.60,30.60
+2026-11-27,pattikonda,0.50,31.00
 2023-01-01,pulivendula,0.00,31.80
 2023-01-02,pulivendula,0.00,31.60
 2023-01-03,pulivendula,0.00,30.60
@@ -23978,6 +23987,7 @@ date,market,rain_mm,tmax_c
 2026-11-24,punganur,14.60,26.40
 2026-11-25,punganur,9.80,25.70
 2026-11-26,punganur,3.70,26.70
+2026-11-27,punganur,5.30,27.20
 2022-01-01,ravulapalem,0.00,29.00
 2022-01-02,ravulapalem,0.10,28.70
 2022-01-03,ravulapalem,0.00,29.60
@@ -25769,6 +25779,7 @@ date,market,rain_mm,tmax_c
 2026-11-24,ravulapalem,7.80,30.60
 2026-11-25,ravulapalem,2.60,30.50
 2026-11-26,ravulapalem,2.20,30.70
+2026-11-27,ravulapalem,1.10,30.40
 2022-01-01,rlykoduru,5.00,25.60
 2022-01-02,rlykoduru,0.40,27.40
 2022-01-03,rlykoduru,3.30,26.30
@@ -27560,6 +27571,7 @@ date,market,rain_mm,tmax_c
 2026-11-24,rlykoduru,16.90,28.00
 2026-11-25,rlykoduru,6.20,27.00
 2026-11-26,rlykoduru,1.40,28.80
+2026-11-27,rlykoduru,1.40,30.10
 2022-01-01,siddavatam,1.80,27.80
 2022-01-02,siddavatam,0.40,28.30
 2022-01-03,siddavatam,0.30,28.30
@@ -29351,6 +29363,7 @@ date,market,rain_mm,tmax_c
 2026-11-24,siddavatam,6.80,30.40
 2026-11-25,siddavatam,1.30,30.20
 2026-11-26,siddavatam,1.80,31.50
+2026-11-27,siddavatam,1.70,31.70
 2022-01-01,tiruchanur,4.50,26.10
 2022-01-02,tiruchanur,0.10,27.80
 2022-01-03,tiruchanur,0.60,26.80
@@ -31142,6 +31155,7 @@ date,market,rain_mm,tmax_c
 2026-11-24,tiruchanur,13.20,27.70
 2026-11-25,tiruchanur,9.80,27.40
 2026-11-26,tiruchanur,1.70,29.30
+2026-11-27,tiruchanur,3.10,29.20
 2023-01-01,tirupati,0.00,28.70
 2023-01-02,tirupati,0.00,28.60
 2023-01-03,tirupati,0.80,26.90
@@ -34359,6 +34373,7 @@ date,market,rain_mm,tmax_c
 2026-11-24,valmikipuram,22.20,26.50
 2026-11-25,valmikipuram,8.20,26.20
 2026-11-26,valmikipuram,1.00,27.90
+2026-11-27,valmikipuram,4.80,28.40
 2023-01-01,vijayawada,0.00,32.00
 2023-01-02,vijayawada,0.30,30.70
 2023-01-03,vijayawada,0.00,30.80
@@ -37576,6 +37591,7 @@ date,market,rain_mm,tmax_c
 2026-11-24,vkota,13.90,25.90
 2026-11-25,vkota,11.50,25.80
 2026-11-26,vkota,0.90,26.90
+2026-11-27,vkota,1.20,27.20
 2022-01-01,yerraguntla,1.70,28.80
 2022-01-02,yerraguntla,0.10,30.10
 2022-01-03,yerraguntla,0.20,28.70
@@ -39367,3 +39383,4 @@ date,market,rain_mm,tmax_c
 2026-11-24,yerraguntla,3.70,30.20
 2026-11-25,yerraguntla,5.80,31.20
 2026-11-26,yerraguntla,2.10,30.50
+2026-11-27,yerraguntla,1.50,32.10
