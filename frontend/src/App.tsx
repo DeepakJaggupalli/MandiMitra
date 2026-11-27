@@ -4,7 +4,8 @@ import { Layout } from './components/Layout'
 import { ErrorBox, Loading } from './components/common'
 import { useApp } from './state'
 import { api } from './api'
-import { PricesPage } from './pages/Prices'
+import { HomePage } from './pages/Home'
+import { PriceDetailPage } from './pages/PriceDetail'
 import { MarketsPage } from './pages/Markets'
 import { AskPage } from './pages/Ask'
 import { AlertsPage } from './pages/Alerts'
@@ -65,7 +66,8 @@ export function App() {
       ) : (
         <Suspense fallback={<Loading />}>
           <Routes>
-            <Route path="/" element={<PricesPage />} />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/price/:crop/:market" element={<PriceDetailPage />} />
             <Route path="/markets" element={<MarketsPage />} />
             <Route path="/ask" element={<AskPage />} />
             <Route path="/alerts" element={<AlertsPage />} />

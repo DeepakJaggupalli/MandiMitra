@@ -169,6 +169,7 @@ export interface OverviewRow {
   point_mean: number | null
   lo: number | null
   hi: number | null
+  direction: 'up' | 'down' | 'flat' | null
   confidence: Confidence | null
   model: string | null
   anomaly_type: AnomalyType | null

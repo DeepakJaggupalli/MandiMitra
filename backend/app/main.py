@@ -88,7 +88,8 @@ def forecast_overview():
             rows.append({"crop": c["id"], "market": r["market"], "date": r["date"], "modal": r["modal"], "change_7d_pct": r["change_7d_pct"],
                          "trend": r["trend"], "arrivals_t": r["arrivals_t"],
                          "point_mean": fc["summary"]["point_mean"] if ok else None, "lo": fc["summary"]["lo"] if ok else None,
-                         "hi": fc["summary"]["hi"] if ok else None, "confidence": fc.get("confidence"), "model": fc.get("model"),
+                         "hi": fc["summary"]["hi"] if ok else None, "direction": fc["summary"]["direction"] if ok else None,
+                         "confidence": fc.get("confidence"), "model": fc.get("model"),
                          "anomaly_type": an["type"] if an else None})
     return {"data_as_of": s.meta["data_as_of"], "source": s.source, "rows": rows}
 
