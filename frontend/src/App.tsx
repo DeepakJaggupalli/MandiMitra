@@ -6,6 +6,7 @@ import { useApp } from './state'
 import { api } from './api'
 import { HomePage } from './pages/Home'
 import { PriceDetailPage } from './pages/PriceDetail'
+import { ExtraCropPage } from './pages/ExtraCrop'
 import { MarketsPage } from './pages/Markets'
 import { AskPage } from './pages/Ask'
 import { AlertsPage } from './pages/Alerts'
@@ -68,6 +69,7 @@ export function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/price/:crop/:market" element={<PriceDetailPage />} />
+            <Route path="/crop/:id" element={<ExtraCropPage />} />
             <Route path="/markets" element={<MarketsPage />} />
             <Route path="/ask" element={<AskPage />} />
             <Route path="/alerts" element={<AlertsPage />} />

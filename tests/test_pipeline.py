@@ -64,3 +64,22 @@ def test_ogd_paging_and_filter_fallback(monkeypatch):
     assert used == {"State": "AP"} and len(rows_got) == 25 and total == 25
     out = ag.map_columns(pd.DataFrame(rows_got))
     assert out.loc[0, "modal"] == 1500 and out.loc[0, "date"] == pd.Timestamp("2026-10-01")
+
+
+def test_build_extra_prices_only():
+    from datetime import date as d_
+    from pipeline.extra import build_extra
+    raw = pd.DataFrame({"state": "Andhra Pradesh", "district": "Guntur", "market_raw": ["Guntur APMC"] * 3 + ["DIVI (HQ-AVANIGADDA APMC)"],
+                        "commodity_raw": ["Dry Chillies", "Dry Chillies", "Dry Chillies", "Dry Chillies"],
+                        "variety": ["Teja", "334", "Teja", "Teja"], "grade": "FAQ",
+                        "date": pd.to_datetime(["2026-11-26", "2026-11-27", "2026-11-27", "2026-11-27"]),
+                        "min": [20000, 18000, 0, 15000], "max": [27000, 24000, 26000, 17000], "modal": [25000, 21000, 25500, 16000],
+                        "arrivals_t": None, "price_unit": "quintal", "source": "AGMARKNET"})
+    cat = {"extra_crops": [{"id": "dry_chillies", "en": "Dry chillies", "te": "ఎండు మిర్చి", "group": "spice", "agmarknet": ["Dry Chillies"]}],
+           "places": [{"id": "guntur", "en": "Guntur", "te": "గుంటూరు", "aliases": []}]}
+    out = build_extra(raw, cat, d_(2026, 11, 27))
+    crop = out["crops"][0]
+    assert crop["n_markets"] == 2
+    g = next(m for m in crop["markets"] if m["market"] == "Guntur")
+    assert g["te"] == "గుంటూరు" and g["modal"] == 23250 and g["min"] == 18000 and set(g["varieties"]) == {"Teja", "334"}
+    assert any(m["market"] == "Divi (Hq-Avanigadda)" for m in crop["markets"])

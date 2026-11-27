@@ -35,6 +35,11 @@ class Store:
         self.accuracy = _load("accuracy.json")
         self.quality = _load("quality.json")
         self.anomalies = _load("anomalies.json")
+        try:  # optional crops (prices only); older deployments may not have the file yet
+            self.extra = _load("extra_prices.json")
+        except FileNotFoundError:
+            self.extra = {"as_of": None, "crops": []}
+        self.extra_by_id = {c["id"]: c for c in self.extra.get("crops", [])}
         with open(DATA_DIR / "catalog.json", encoding="utf-8") as f:
             self.catalog = json.load(f)
         self.crops = {c["id"]: c for c in self.catalog["crops"]}

@@ -22,7 +22,8 @@ from pipeline.common import PROCESSED, RAW, RunLog, load_catalog, now_iso, write
 from pipeline.explain import advice, confidence, top_reasons
 from pipeline.features import build_panel
 from pipeline.forecast import LABELS, run_forecasts
-from pipeline.sources.agmarknet import RAW_COLS, load_real, map_columns
+from pipeline.extra import build_extra
+from pipeline.sources.agmarknet import RAW_COLS, load_extra_cache, load_real, map_columns
 from pipeline.sources.simulate import simulate
 from pipeline.sources.weather import fetch_weather
 
@@ -197,6 +198,10 @@ def main(argv=None) -> int:
             "markets": [{k: m[k] for k in ("id", "en", "te", "district", "lat", "lon")} for m in catalog["markets"]],
             "pipeline_log": log.entries, "weather_rows": int(len(weather))}
 
+    extra = build_extra(load_extra_cache(), catalog, ist_today())
+    log.add("data_agent", "save_data", f"optional crops: {sum(1 for c in extra['crops'] if c['n_markets'])} of {len(extra['crops'])} "
+                                       f"have a price from the last 14 days")
+    write_json(PROCESSED / "extra_prices.json", extra)
     write_json(PROCESSED / "prices.json", prices)
     write_json(PROCESSED / "forecasts.json", forecasts)
     write_json(PROCESSED / "accuracy.json", acc)

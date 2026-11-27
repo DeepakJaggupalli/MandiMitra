@@ -1084,5 +1084,417 @@
   "road_factor": 1.3,
   "max_compare_km": 200,
   "stale_after_days": 3
- }
+ },
+ "extra_crops": [
+  {
+   "id": "green_chilli",
+   "en": "Green chilli",
+   "te": "పచ్చి మిర్చి",
+   "group": "veg",
+   "agmarknet": [
+    "Green Chilli"
+   ]
+  },
+  {
+   "id": "brinjal",
+   "en": "Brinjal",
+   "te": "వంకాయ",
+   "group": "veg",
+   "agmarknet": [
+    "Brinjal"
+   ]
+  },
+  {
+   "id": "ladies_finger",
+   "en": "Ladies finger (bhindi)",
+   "te": "బెండకాయ",
+   "group": "veg",
+   "agmarknet": [
+    "Bhindi(Ladies Finger)"
+   ]
+  },
+  {
+   "id": "potato",
+   "en": "Potato",
+   "te": "బంగాళాదుంప",
+   "group": "veg",
+   "agmarknet": [
+    "Potato"
+   ]
+  },
+  {
+   "id": "cabbage",
+   "en": "Cabbage",
+   "te": "క్యాబేజీ",
+   "group": "veg",
+   "agmarknet": [
+    "Cabbage"
+   ]
+  },
+  {
+   "id": "cauliflower",
+   "en": "Cauliflower",
+   "te": "కాలీఫ్లవర్",
+   "group": "veg",
+   "agmarknet": [
+    "Cauliflower"
+   ]
+  },
+  {
+   "id": "carrot",
+   "en": "Carrot",
+   "te": "క్యారెట్",
+   "group": "veg",
+   "agmarknet": [
+    "Carrot"
+   ]
+  },
+  {
+   "id": "beans",
+   "en": "Beans",
+   "te": "బీన్స్",
+   "group": "veg",
+   "agmarknet": [
+    "Beans"
+   ]
+  },
+  {
+   "id": "cluster_beans",
+   "en": "Cluster beans",
+   "te": "గోరుచిక్కుడు",
+   "group": "veg",
+   "agmarknet": [
+    "Cluster beans"
+   ]
+  },
+  {
+   "id": "ridge_gourd",
+   "en": "Ridge gourd",
+   "te": "బీరకాయ",
+   "group": "veg",
+   "agmarknet": [
+    "Ridgeguard(Tori)"
+   ]
+  },
+  {
+   "id": "bitter_gourd",
+   "en": "Bitter gourd",
+   "te": "కాకరకాయ",
+   "group": "veg",
+   "agmarknet": [
+    "Bitter gourd"
+   ]
+  },
+  {
+   "id": "bottle_gourd",
+   "en": "Bottle gourd",
+   "te": "సొరకాయ",
+   "group": "veg",
+   "agmarknet": [
+    "Bottle gourd"
+   ]
+  },
+  {
+   "id": "drumstick",
+   "en": "Drumstick",
+   "te": "మునగకాయ",
+   "group": "veg",
+   "agmarknet": [
+    "Drumstick"
+   ]
+  },
+  {
+   "id": "cucumber",
+   "en": "Cucumber",
+   "te": "దోసకాయ",
+   "group": "veg",
+   "agmarknet": [
+    "Cucumbar(Kheera)"
+   ]
+  },
+  {
+   "id": "ginger",
+   "en": "Ginger (green)",
+   "te": "అల్లం",
+   "group": "veg",
+   "agmarknet": [
+    "Ginger(Green)"
+   ]
+  },
+  {
+   "id": "garlic",
+   "en": "Garlic",
+   "te": "వెల్లుల్లి",
+   "group": "veg",
+   "agmarknet": [
+    "Garlic"
+   ]
+  },
+  {
+   "id": "mango",
+   "en": "Mango",
+   "te": "మామిడి",
+   "group": "fruit",
+   "agmarknet": [
+    "Mango"
+   ]
+  },
+  {
+   "id": "lemon",
+   "en": "Lemon / lime",
+   "te": "నిమ్మకాయ",
+   "group": "fruit",
+   "agmarknet": [
+    "Lemon",
+    "Lime"
+   ]
+  },
+  {
+   "id": "mosambi",
+   "en": "Sweet lime (mosambi)",
+   "te": "బత్తాయి",
+   "group": "fruit",
+   "agmarknet": [
+    "Mousambi(Sweet Lime)"
+   ]
+  },
+  {
+   "id": "papaya",
+   "en": "Papaya",
+   "te": "బొప్పాయి",
+   "group": "fruit",
+   "agmarknet": [
+    "Papaya"
+   ]
+  },
+  {
+   "id": "pomegranate",
+   "en": "Pomegranate",
+   "te": "దానిమ్మ",
+   "group": "fruit",
+   "agmarknet": [
+    "Pomegranate"
+   ]
+  },
+  {
+   "id": "grapes",
+   "en": "Grapes",
+   "te": "ద్రాక్ష",
+   "group": "fruit",
+   "agmarknet": [
+    "Grapes"
+   ]
+  },
+  {
+   "id": "guava",
+   "en": "Guava",
+   "te": "జామ",
+   "group": "fruit",
+   "agmarknet": [
+    "Guava"
+   ]
+  },
+  {
+   "id": "sapota",
+   "en": "Sapota (chikoo)",
+   "te": "సపోటా",
+   "group": "fruit",
+   "agmarknet": [
+    "Chikoos(Sapota)"
+   ]
+  },
+  {
+   "id": "watermelon",
+   "en": "Watermelon",
+   "te": "పుచ్చకాయ",
+   "group": "fruit",
+   "agmarknet": [
+    "Water Melon"
+   ]
+  },
+  {
+   "id": "dry_chillies",
+   "en": "Dry chillies",
+   "te": "ఎండు మిర్చి",
+   "group": "spice",
+   "agmarknet": [
+    "Dry Chillies",
+    "Chili Red"
+   ]
+  },
+  {
+   "id": "turmeric",
+   "en": "Turmeric",
+   "te": "పసుపు",
+   "group": "spice",
+   "agmarknet": [
+    "Turmeric"
+   ]
+  },
+  {
+   "id": "tamarind",
+   "en": "Tamarind",
+   "te": "చింతపండు",
+   "group": "spice",
+   "agmarknet": [
+    "Tamarind Fruit"
+   ]
+  },
+  {
+   "id": "cashew",
+   "en": "Cashew nuts",
+   "te": "జీడిపప్పు",
+   "group": "spice",
+   "agmarknet": [
+    "Cashewnuts"
+   ]
+  },
+  {
+   "id": "paddy",
+   "en": "Paddy (common)",
+   "te": "వరి (సాధారణ రకం)",
+   "group": "field",
+   "agmarknet": [
+    "Paddy(Common)",
+    "Paddy(Dhan)(Common)"
+   ]
+  },
+  {
+   "id": "paddy_fine",
+   "en": "Paddy (fine)",
+   "te": "వరి (సన్న రకం)",
+   "group": "field",
+   "agmarknet": [
+    "Paddy(Fine/Superfine/Grade A)"
+   ]
+  },
+  {
+   "id": "maize",
+   "en": "Maize",
+   "te": "మొక్కజొన్న",
+   "group": "field",
+   "agmarknet": [
+    "Maize"
+   ]
+  },
+  {
+   "id": "groundnut",
+   "en": "Groundnut",
+   "te": "వేరుశనగ",
+   "group": "field",
+   "agmarknet": [
+    "Groundnut"
+   ]
+  },
+  {
+   "id": "cotton",
+   "en": "Cotton",
+   "te": "పత్తి",
+   "group": "field",
+   "agmarknet": [
+    "Cotton"
+   ]
+  },
+  {
+   "id": "bengal_gram",
+   "en": "Bengal gram (chana)",
+   "te": "శనగలు",
+   "group": "field",
+   "agmarknet": [
+    "Bengal Gram(Gram)(Whole)"
+   ]
+  },
+  {
+   "id": "black_gram",
+   "en": "Black gram (urad)",
+   "te": "మినుములు",
+   "group": "field",
+   "agmarknet": [
+    "Black Gram(Urd Beans)(Whole)"
+   ]
+  },
+  {
+   "id": "red_gram",
+   "en": "Red gram (tur)",
+   "te": "కందులు",
+   "group": "field",
+   "agmarknet": [
+    "Red gram/Arhar/Tur(whole)",
+    "Arhar (Tur/Red Gram)(Whole)"
+   ]
+  },
+  {
+   "id": "green_gram",
+   "en": "Green gram (moong)",
+   "te": "పెసలు",
+   "group": "field",
+   "agmarknet": [
+    "Green Gram(Moong)(Whole)"
+   ]
+  },
+  {
+   "id": "jowar",
+   "en": "Jowar",
+   "te": "జొన్నలు",
+   "group": "field",
+   "agmarknet": [
+    "Jowar(Sorghum)"
+   ]
+  },
+  {
+   "id": "ragi",
+   "en": "Ragi",
+   "te": "రాగులు",
+   "group": "field",
+   "agmarknet": [
+    "Ragi(Finger Millet)"
+   ]
+  },
+  {
+   "id": "bajra",
+   "en": "Bajra (sajjalu)",
+   "te": "సజ్జలు",
+   "group": "field",
+   "agmarknet": [
+    "Bajra(Pearl Millet/Cumbu)"
+   ]
+  },
+  {
+   "id": "sesame",
+   "en": "Sesame",
+   "te": "నువ్వులు",
+   "group": "field",
+   "agmarknet": [
+    "Sesamum(Sesame,Gingelly,Til)"
+   ]
+  },
+  {
+   "id": "sunflower",
+   "en": "Sunflower",
+   "te": "పొద్దుతిరుగుడు",
+   "group": "field",
+   "agmarknet": [
+    "Sunflower/Sunflower Seed",
+    "Sunflower"
+   ]
+  },
+  {
+   "id": "castor",
+   "en": "Castor seed",
+   "te": "ఆముదాలు",
+   "group": "field",
+   "agmarknet": [
+    "Castor Seed"
+   ]
+  },
+  {
+   "id": "jaggery",
+   "en": "Jaggery",
+   "te": "బెల్లం",
+   "group": "field",
+   "agmarknet": [
+    "Gur(Jaggery)"
+   ]
+  }
+ ]
 }

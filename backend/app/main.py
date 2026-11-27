@@ -26,7 +26,7 @@ app = FastAPI(title="MandiMitra API", version="1.0.0", docs_url="/api/docs", ope
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"], allow_methods=["*"], allow_headers=["*"])
 
-CACHEABLE = ("/api/meta", "/api/places", "/api/prices", "/api/forecast", "/api/accuracy", "/api/assistant/eval")
+CACHEABLE = ("/api/meta", "/api/places", "/api/prices", "/api/forecast", "/api/accuracy", "/api/assistant/eval", "/api/extra")
 
 
 @app.middleware("http")
@@ -84,6 +84,23 @@ def prices(crop: str, market: str, days: int = Query(90, ge=7, le=1095)):
             "last_report": ser.get("last_report"), "stale": s.stale(s.latest(crop, market)["date"]),
             "latest": s.latest(crop, market), "trend": s.trend(crop, market),
             "history": s.history(crop, market, days), "last_year": s.last_year(crop, market, days)}
+
+
+# ------------------------------------------------------------------ optional crops (prices only)
+@app.get("/api/extra")
+def extra_list():
+    s = get_store()
+    return {"as_of": s.extra.get("as_of"), "source": s.source,
+            "crops": [{k: c[k] for k in ("id", "en", "te", "group", "n_markets", "last_date")} for c in s.extra.get("crops", [])]}
+
+
+@app.get("/api/extra/{crop_id}")
+def extra_crop(crop_id: str):
+    s = get_store()
+    c = s.extra_by_id.get(crop_id)
+    if not c:
+        raise HTTPException(404, f"Unknown crop '{crop_id}'")
+    return {**c, "as_of": s.extra.get("as_of"), "source": s.source}
 
 
 @app.get("/api/forecast/overview")

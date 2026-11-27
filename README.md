@@ -34,6 +34,12 @@ they are one market in the app.
 Anantapur, Kadapa town, Vijayawada and Pulivendula from the design document's example list do not report these crops
 in this source, so they are not shown.
 
+**Other crops (farmer's choice, prices only).** Besides the three study crops, a farmer can tap "+ Add a crop" and follow
+any of 45 other crops (vegetables, fruits, spices and plantation crops, field crops such as paddy, maize, groundnut,
+cotton and pulses). The app then shows the latest official price at every Andhra Pradesh market that reported it in the
+last 30 days, with a 30-day chart. These crops get **no forecast**: only the study crops are backtested, and the app says
+so. The same daily request fetches all crops for a day, so this adds no extra API load.
+
 ## What is built (PoC scope from the design document)
 
 | # | Feature | Where |

@@ -22,6 +22,9 @@ from pipeline.common import RAW, RunLog
 
 CSV_DIR = RAW / "agmarknet"
 CACHE = CSV_DIR / "datagovin_cache.csv"
+EXTRA_CACHE = CSV_DIR / "datagovin_extra.csv"   # optional crops a farmer can add (prices only)
+EXTRA_BACKFILL_DAYS = 45
+EXTRA_KEEP_DAYS = 120
 OGD_BASE = "https://api.data.gov.in/resource/"
 OGD_HISTORY = "35985678-0d79-46b4-9ed6-6f13308a1d24"
 OGD_CURRENT = "9ef84268-d588-465a-a308-a864a43d0070"
@@ -214,9 +217,25 @@ def fetch_datagovin(catalog: dict, log: RunLog, history: bool) -> pd.DataFrame:
         return old
     state = catalog["state"]
     names = [n for c in catalog["crops"] for n in OGD_COMMODITIES.get(c["id"], [c["en"]])]
+    core = {ckey(n) for n in names}
+    extra_names = {ckey(n) for c in catalog.get("extra_crops", []) for n in c["agmarknet"]}
     today = date.today()
     need_history = history or old.empty or (pd.Timestamp(today) - old["date"].max()).days > 30
     frames: list[pd.DataFrame] = []
+    extra_frames: list[pd.DataFrame] = []
+    pulled_days: set[str] = set()
+
+    def pull_day(day: str) -> int:
+        """One request returns every AP commodity for that day: split into study crops and optional crops."""
+        rows, _used, _total = _ogd_pull(OGD_HISTORY, key, [{"State": state, "Arrival_Date": day}])
+        pulled_days.add(day)
+        df = _to_raw(rows)
+        if not df.empty:
+            k = df["commodity_raw"].map(ckey)
+            frames.append(df[k.isin(core)])
+            extra_frames.append(df[k.isin(extra_names)])
+        return len(rows)
+
     try:
         if need_history:
             for name in names:
@@ -231,21 +250,64 @@ def fetch_datagovin(catalog: dict, log: RunLog, history: bool) -> pd.DataFrame:
         else:
             got = 0
             for d in range(REFRESH_DAYS, -1, -1):
+                got += pull_day((today - timedelta(days=d)).strftime("%d-%m-%Y"))
+            log.add("data_agent", "fetch_agmarknet", f"data.gov.in history, last {REFRESH_DAYS} days re-read (all AP crops): {got} records")
+        extra_old = _read_extra()
+        if extra_names and (extra_old.empty or (pd.Timestamp(today) - extra_old["date"].max()).days > 20):
+            got = 0
+            for d in range(EXTRA_BACKFILL_DAYS, -1, -1):
                 day = (today - timedelta(days=d)).strftime("%d-%m-%Y")
-                for name in names:
-                    rows, _used, _total = _ogd_pull(OGD_HISTORY, key, [{"State": state, "Commodity": name, "Arrival_Date": day}])
-                    got += len(rows)
-                    frames.append(_to_raw(rows))
-            log.add("data_agent", "fetch_agmarknet", f"data.gov.in history, last {REFRESH_DAYS} days re-read: {got} records")
+                if day not in pulled_days:
+                    got += pull_day(day)
+            log.add("data_agent", "fetch_agmarknet", f"optional crops: {EXTRA_BACKFILL_DAYS}-day backfill, {got} records")
         rows, _used, _total = _ogd_pull(OGD_CURRENT, key, [{"state.keyword": state}, {"state": state}])
         cur = _to_raw(rows)
-        cur = cur[cur["commodity_raw"].astype(str).str.strip().str.lower().isin([n.lower() for n in names])]
+        k = cur["commodity_raw"].map(ckey) if not cur.empty else pd.Series(dtype=str)
+        if not cur.empty:
+            extra_frames.append(cur[k.isin(extra_names)])
+            cur = cur[k.isin(core)]
         frames.append(cur)
         log.add("data_agent", "fetch_agmarknet", f"data.gov.in current-day file: {len(rows)} AP records, {len(cur)} for our crops")
     except Exception as exc:
         log.add("data_agent", "fetch_agmarknet", f"data.gov.in fetch failed, using the cache: {exc}", level="warning")
 
+    merge_extra(extra_frames, log)
     return merge_into_cache(old, frames, names, log)
+
+
+def ckey(name) -> str:
+    """Commodity names are compared without spaces/punctuation ('Red gram/Arhar/Tur(whole)' -> 'redgramarhartur...')."""
+    return re.sub(r"[^a-z0-9]", "", str(name).lower())
+
+
+def _read_extra() -> pd.DataFrame:
+    if not EXTRA_CACHE.exists():
+        return pd.DataFrame(columns=RAW_COLS)
+    df = pd.read_csv(EXTRA_CACHE, low_memory=False)
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")
+    return df
+
+
+def load_extra_cache() -> pd.DataFrame:
+    return _read_extra()
+
+
+def merge_extra(frames: list[pd.DataFrame], log: RunLog) -> None:
+    """Keep the last EXTRA_KEEP_DAYS days of the optional crops (prices only, no forecasts)."""
+    frames = [f for f in frames if f is not None and not f.empty]
+    if not frames:
+        return
+    allr = pd.concat([f for f in [_read_extra(), *frames] if not f.empty], ignore_index=True)
+    allr["date"] = pd.to_datetime(allr["date"], errors="coerce")
+    allr = allr[allr["date"] >= pd.Timestamp(date.today() - timedelta(days=EXTRA_KEEP_DAYS))]
+    for c in ("market_raw", "variety", "grade", "district", "state", "commodity_raw"):
+        allr[c] = allr[c].fillna("").astype(str).str.replace(r"\s+", " ", regex=True).str.strip()
+    allr = allr.drop_duplicates(subset=["market_raw", "commodity_raw", "variety", "grade", "date"], keep="last")
+    allr = allr.sort_values(["date", "commodity_raw", "market_raw"]).reset_index(drop=True)
+    out = allr.copy()
+    out["date"] = out["date"].dt.strftime("%Y-%m-%d")
+    out[RAW_COLS].to_csv(EXTRA_CACHE, index=False)
+    log.add("data_agent", "save_data", f"optional crops cache: {len(allr)} rows, {allr['commodity_raw'].nunique()} crops")
 
 
 def merge_into_cache(old: pd.DataFrame, frames: list[pd.DataFrame], names: list[str], log: RunLog) -> pd.DataFrame:

@@ -28,6 +28,11 @@ pipeline yourself). It is never stored in the repository.
 - **Every daily run (09:30 and 18:00 IST):** each of the last 10 days is re-read with an exact date filter (late
   uploads and corrections land), plus today's file from the current-price resource.
 - "Banana - Green" (raw cooking banana) is a different product and is not mixed with Banana.
+- Each day is read once **for all Andhra Pradesh crops** (one request per day). Rows for the 45 optional crops in
+  `catalog.json → extra_crops` are kept for the last 120 days in `data/raw/agmarknet/datagovin_extra.csv`
+  (a 45-day backfill on first run) and summarised in `data/processed/extra_prices.json`: the latest price per market
+  (median of the varieties reported that day), min–max, varieties and a 30-day history. Prices only, no forecasts.
+  Coconut and non-farm items are left out (different price units).
 
 ## How markets were chosen
 

@@ -77,6 +77,35 @@ export interface LatestResponse {
   rows: LatestRow[]
 }
 
+export type ExtraGroup = 'veg' | 'fruit' | 'spice' | 'field'
+
+export interface ExtraCropSummary {
+  id: string
+  en: string
+  te: string
+  group: ExtraGroup
+  n_markets: number
+  last_date: string | null
+}
+
+export interface ExtraMarket {
+  market: string
+  te: string | null
+  district: string
+  date: string
+  min: number
+  max: number
+  modal: number
+  varieties: string[]
+  history: [string, number, number, number][]
+}
+
+export interface ExtraCropDetail extends ExtraCropSummary {
+  markets: ExtraMarket[]
+  as_of: string | null
+  source: Source
+}
+
 export interface PricePoint {
   date: string
   min: number
@@ -529,6 +558,8 @@ async function request<T>(method: string, path: string, body?: unknown, auth = f
 const enc = encodeURIComponent
 
 export const api = {
+  extraList: () => request<{ as_of: string | null; source: Source; crops: ExtraCropSummary[] }>('GET', '/extra'),
+  extraCrop: (id: string) => request<ExtraCropDetail>('GET', `/extra/${enc(id)}`),
   health: () => request<Health>('GET', '/health'),
   meta: () => request<Meta>('GET', '/meta'),
   places: () => request<{ rows: Place[] }>('GET', '/places'),

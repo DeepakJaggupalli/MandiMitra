@@ -174,3 +174,18 @@ def test_ingest_relay_is_locked_down(monkeypatch):
     assert client.get("/api/ingest/ogd", params={"resource": "anything"}, headers=h).status_code == 400
     assert client.get("/api/ingest/ogd", params={"resource": "history", "commodity": "Cotton"}, headers=h).status_code == 400
     assert client.get("/api/ingest/ogd", params={"resource": "history", "day": "2026-11-27"}, headers=h).status_code == 400
+
+
+def test_extra_crops_prices_only():
+    lst = client.get("/api/extra").json()
+    assert lst["crops"] and all({"id", "en", "te", "group", "n_markets"} <= set(c) for c in lst["crops"])
+    ids = {c["id"] for c in lst["crops"]}
+    assert not ids & {"tomato", "onion", "banana"}  # study crops stay separate, with forecasts
+    with_data = [c for c in lst["crops"] if c["n_markets"]]
+    if with_data:
+        d = client.get(f"/api/extra/{with_data[0]['id']}").json()
+        assert d["markets"]
+        for m in d["markets"]:
+            assert m["min"] <= m["modal"] <= m["max"] and m["date"] <= d["as_of"]
+            assert all(len(h) == 4 for h in m["history"])
+    assert client.get("/api/extra/unicorn").status_code == 404

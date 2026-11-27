@@ -6,6 +6,7 @@ import { fmtDate, rupees } from '../i18n'
 import type { Lang } from '../api'
 import { Async } from '../components/common'
 import { MarketDetail } from '../components/MarketDetail'
+import { ExtraCropDetail, ExtraCropsSection } from '../components/ExtraCrops'
 import { SpeakButton, spokenSummary } from '../components/Speak'
 import { favKey, useFavs } from '../favs'
 import { useIsDesktop } from '../useMedia'
@@ -107,6 +108,7 @@ export function HomePage() {
   const { t, lang, meta, cropName, selection, setSelection, marketName } = useApp()
   const { favs, isFav, toggle } = useFavs()
   const [filter, setFilter] = useState<string>('all')
+  const [extraSel, setExtraSel] = useState<{ id: string; market: string } | null>(null)
   const desktop = useIsDesktop()
   const ov = useAsync(() => api.overview(), [])
   const order = (meta?.crops ?? []).map((c) => c.id)
@@ -137,7 +139,10 @@ export function HomePage() {
           )
           if (desktop) {
             const sel = rows.find((r) => r.crop === selection.crop && r.market === selection.market) ?? favRows[0] ?? rows[0]
-            const pick = (r: OverviewRow) => setSelection({ crop: r.crop, market: r.market })
+            const pick = (r: OverviewRow) => {
+              setExtraSel(null)
+              setSelection({ crop: r.crop, market: r.market })
+            }
             const selKey = sel ? favKey(sel.crop, sel.market) : ''
             return (
               <div className="desk-home">
@@ -152,7 +157,7 @@ export function HomePage() {
                       <div className="tiles tiles-side">
                         {favRows.map((r) => (
                           <Tile key={`f-${r.crop}-${r.market}`} r={r} asOf={d.data_as_of} lang={lang} onSelect={() => pick(r)}
-                            active={sel === r} />
+                            active={!extraSel && sel === r} />
                         ))}
                       </div>
                     </section>
@@ -163,13 +168,17 @@ export function HomePage() {
                     <div className="tiles tiles-side">
                       {shown.map((r) => (
                         <Tile key={`${r.crop}-${r.market}`} r={r} asOf={d.data_as_of} lang={lang} onSelect={() => pick(r)}
-                          active={sel === r} />
+                          active={!extraSel && sel === r} />
                       ))}
                     </div>
                   </section>
+                  <ExtraCropsSection asOf={d.data_as_of} onSelect={(id, market) => setExtraSel({ id, market })} />
                 </aside>
                 <section className="desk-main">
-                  {sel && (
+                  {extraSel ? (
+                    <ExtraCropDetail id={extraSel.id} market={extraSel.market}
+                      onPickMarket={(mk) => setExtraSel({ id: extraSel.id, market: mk })} />
+                  ) : sel && (
                     <>
                       <div className="detail-head">
                         <h2 className="page-title">
@@ -217,6 +226,7 @@ export function HomePage() {
                   ))}
                 </div>
               </section>
+              <ExtraCropsSection asOf={d.data_as_of} />
               <p className="guide-note">{t('guideNote')}</p>
             </>
           )
