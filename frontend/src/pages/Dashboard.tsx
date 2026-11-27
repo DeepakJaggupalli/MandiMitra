@@ -132,7 +132,7 @@ function AccuracyReport() {
                   <div className="stat-l">{t('coverage')}</div>
                 </div>
                 <div className="stat">
-                  <div className="stat-v">{pct(a.overall.direction_accuracy * 100, false)}</div>
+                  <div className="stat-v">{a.overall.direction_accuracy != null ? pct(a.overall.direction_accuracy * 100, false) : '—'}</div>
                   <div className="stat-l">
                     {t('directionAcc')}
                     {a.overall.direction_n ? ` (${t('ofMoves', { n: fmtNum(a.overall.direction_n) })})` : ''}
@@ -214,7 +214,7 @@ function AccuracyReport() {
                         <td>{s.production_model ? label(s.production_model) : '–'}</td>
                         <td>{pct(s.improvement_pct)}</td>
                         <td>{pct(s.coverage * 100, false)}</td>
-                        <td>{pct(s.direction_accuracy * 100, false)}</td>
+                        <td>{s.direction_accuracy != null ? pct(s.direction_accuracy * 100, false) : '—'}</td>
                       </tr>
                     ))}
                   </tbody>

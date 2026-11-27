@@ -2,13 +2,18 @@
 (2) the official data.gov.in OGD API when DATA_GOV_IN_API_KEY is set.
 
 Both are turned into one raw schema:
-    state, district, market_raw, commodity_raw, variety, date, min, max, modal, arrivals_t, price_unit, source
+    state, district, market_raw, commodity_raw, variety, grade, date, min, max, modal, arrivals_t, price_unit, source
+
+OGD resources used (Ministry of Agriculture & Farmers Welfare, AGMARKNET):
+- 35985678-0d79-46b4-9ed6-6f13308a1d24  Variety-wise Daily Market Prices Data of Commodity (history, from 2010)
+- 9ef84268-d588-465a-a308-a864a43d0070  Current Daily Price of Various Commodities from Various Markets (today)
+Neither resource carries arrival quantities.
 """
 from __future__ import annotations
 
 import os
 import re
-from pathlib import Path
+from datetime import date, timedelta
 
 import pandas as pd
 import requests
@@ -16,11 +21,16 @@ import requests
 from pipeline.common import RAW, RunLog
 
 CSV_DIR = RAW / "agmarknet"
+CACHE = CSV_DIR / "datagovin_cache.csv"
 OGD_BASE = "https://api.data.gov.in/resource/"
-OGD_HISTORY = "35985678-0d79-46b4-9ed6-6f13308a1d24"  # Variety-wise daily market prices (historical)
-OGD_CURRENT = "9ef84268-d588-465a-a308-a864a43d0070"  # Current daily price of commodities (today)
-RAW_COLS = ["state", "district", "market_raw", "commodity_raw", "variety", "date", "min", "max", "modal",
+OGD_HISTORY = "35985678-0d79-46b4-9ed6-6f13308a1d24"
+OGD_CURRENT = "9ef84268-d588-465a-a308-a864a43d0070"
+RAW_COLS = ["state", "district", "market_raw", "commodity_raw", "variety", "grade", "date", "min", "max", "modal",
             "arrivals_t", "price_unit", "source"]
+HISTORY_START = "2022-01-01"        # older years are not needed for a 3-year PoC and would bloat the cache
+REFRESH_DAYS = 10                   # daily runs re-read the last 10 days, so late uploads and corrections land
+# "Banana - Green" is raw (cooking) banana, a different product with different prices; it is not mixed in.
+OGD_COMMODITIES = {"tomato": ["Tomato"], "onion": ["Onion"], "banana": ["Banana"]}
 
 
 def _key(col: str) -> str:
@@ -34,20 +44,31 @@ def _find(cols: dict[str, str], *preds) -> str | None:
     return None
 
 
+def _dates(s: pd.Series) -> pd.Series:
+    s = s.astype(str).str.strip()
+    out = pd.to_datetime(s, format="%d/%m/%Y", errors="coerce")
+    rest = out.isna()
+    if rest.any():
+        out[rest] = pd.to_datetime(s[rest], dayfirst=True, errors="coerce", format="mixed")
+    return out
+
+
 def map_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Map any AGMARKNET-style export (old portal, 2.0 portal, OGD API, scraper) to the raw schema."""
     cols = {_key(c): c for c in df.columns}
     c_date = (_find(cols, lambda k: "arrivaldate" in k) or _find(cols, lambda k: "reporteddate" in k)
               or _find(cols, lambda k: "pricedate" in k) or _find(cols, lambda k: "reportdate" in k)
               or _find(cols, lambda k: k in ("date", "tradedate")))
-    c_market = (_find(cols, lambda k: k in ("market", "marketname", "marketcenter", "mandi", "apmc", "mandiname"))
+    c_market = (_find(cols, lambda k: k in ("market", "marketname", "marketcenter", "mandi", "apmc", "mandiname", "marketraw"))
                 or _find(cols, lambda k: "market" in k and "code" not in k and "id" != k[-2:]))
-    c_comm = _find(cols, lambda k: k in ("commodity", "commodityname", "crop", "cropname")) or _find(cols, lambda k: "commodity" in k and "code" not in k and "group" not in k)
+    c_comm = (_find(cols, lambda k: k in ("commodity", "commodityname", "crop", "cropname", "commodityraw"))
+              or _find(cols, lambda k: "commodity" in k and "code" not in k and "group" not in k))
     c_var = _find(cols, lambda k: k.startswith("variety"))
+    c_grade = _find(cols, lambda k: k.startswith("grade"))
     c_state = _find(cols, lambda k: k in ("state", "statename"))
     c_dist = _find(cols, lambda k: k in ("district", "districtname"))
-    c_min = _find(cols, lambda k: "min" in k and "price" in k)
-    c_max = _find(cols, lambda k: "max" in k and "price" in k)
+    c_min = _find(cols, lambda k: "min" in k and "price" in k) or _find(cols, lambda k: k == "min")
+    c_max = _find(cols, lambda k: "max" in k and "price" in k) or _find(cols, lambda k: k == "max")
     c_modal = _find(cols, lambda k: "modal" in k)
     c_arr = _find(cols, lambda k: "arrival" in k and "date" not in k)
     missing = [n for n, c in [("date", c_date), ("market", c_market), ("commodity", c_comm), ("modal price", c_modal)] if c is None]
@@ -57,10 +78,11 @@ def map_columns(df: pd.DataFrame) -> pd.DataFrame:
     out = pd.DataFrame({
         "state": df[c_state] if c_state else None,
         "district": df[c_dist] if c_dist else None,
-        "market_raw": df[c_market],
+        "market_raw": df[c_market].astype(str).str.replace(r"\s+", " ", regex=True).str.strip(),
         "commodity_raw": df[c_comm],
         "variety": df[c_var] if c_var else None,
-        "date": pd.to_datetime(df[c_date].astype(str).str.strip(), dayfirst=True, errors="coerce", format="mixed"),
+        "grade": df[c_grade] if c_grade else None,
+        "date": _dates(df[c_date]),
         "min": pd.to_numeric(df[c_min], errors="coerce") if c_min else None,
         "max": pd.to_numeric(df[c_max], errors="coerce") if c_max else None,
         "modal": pd.to_numeric(df[c_modal], errors="coerce"),
@@ -89,24 +111,25 @@ def load_csv_exports(log: RunLog) -> pd.DataFrame:
     return pd.concat(frames, ignore_index=True)[RAW_COLS] if frames else pd.DataFrame(columns=RAW_COLS)
 
 
-OGD_COMMODITIES = {"tomato": ["Tomato"], "onion": ["Onion"], "banana": ["Banana", "Banana - Green"]}
-
-
+# ----------------------------------------------------------------------------- data.gov.in OGD API
 def _ogd_get(resource: str, key: str, filters: dict, limit: int, offset: int) -> dict:
     params = {"api-key": key, "format": "json", "limit": limit, "offset": offset}
     params.update({f"filters[{k}]": v for k, v in filters.items()})
-    r = requests.get(OGD_BASE + resource, params=params, timeout=90, headers={"User-Agent": "MandiMitra-pipeline/1.0"})
-    try:
-        data = r.json()
-    except ValueError:
-        r.raise_for_status()
-        raise RuntimeError(f"non-JSON reply ({r.status_code})")
-    if r.status_code >= 400 or str(data.get("status", "")).lower() == "error" or data.get("error"):
-        raise RuntimeError(f"data.gov.in said: {data.get('message') or data.get('error') or r.status_code}")
-    return data
+    last_exc = None
+    for _attempt in range(3):
+        try:
+            r = requests.get(OGD_BASE + resource, params=params, timeout=90, headers={"User-Agent": "MandiMitra-pipeline/1.0"})
+            data = r.json()
+        except (requests.RequestException, ValueError) as exc:
+            last_exc = exc
+            continue
+        if r.status_code >= 400 or str(data.get("status", "")).lower() == "error" or data.get("error"):
+            raise RuntimeError(f"data.gov.in said: {data.get('message') or data.get('error') or r.status_code}")
+        return data
+    raise RuntimeError(f"data.gov.in unreachable: {last_exc}")
 
 
-def _ogd_pages(resource: str, key: str, filters: dict, limit: int = 1000, max_pages: int = 300):
+def _ogd_pages(resource: str, key: str, filters: dict, limit: int = 1000, max_pages: int = 400):
     """Page through a resource. Stops on an empty page, at `total`, or if the API repeats a page."""
     offset, first_prev = 0, None
     for _ in range(max_pages):
@@ -115,62 +138,110 @@ def _ogd_pages(resource: str, key: str, filters: dict, limit: int = 1000, max_pa
         if not records or records[0] == first_prev:
             return
         first_prev = records[0]
-        yield records
+        yield records, data.get("total")
         offset += len(records)
         total = data.get("total")
         if total is not None and offset >= int(total):
             return
 
 
-def _ogd_pull(resource: str, key: str, variants: list[dict]) -> tuple[list[pd.DataFrame], dict | None]:
+def _ogd_pull(resource: str, key: str, variants: list[dict]) -> tuple[list[dict], dict | None, int | None]:
     """Try filter spellings in turn (field names differ between resources); keep the first that returns rows."""
     for filters in variants:
-        frames = [pd.DataFrame(page) for page in _ogd_pages(resource, key, filters)]
-        if frames:
-            return frames, filters
-    return [], None
+        rows, total = [], None
+        for page, total in _ogd_pages(resource, key, filters):
+            rows += page
+        if rows:
+            return rows, filters, total
+    return [], None, None
+
+
+def _to_raw(rows: list[dict]) -> pd.DataFrame:
+    if not rows:
+        return pd.DataFrame(columns=RAW_COLS)
+    out = map_columns(pd.DataFrame(rows))
+    out["source"] = "AGMARKNET"
+    return out[RAW_COLS]
+
+
+def _read_cache() -> pd.DataFrame:
+    if not CACHE.exists():
+        return pd.DataFrame(columns=RAW_COLS)
+    df = pd.read_csv(CACHE, low_memory=False)
+    for c in RAW_COLS:
+        if c not in df.columns:
+            df[c] = None
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")
+    return df[RAW_COLS]
 
 
 def fetch_datagovin(catalog: dict, log: RunLog, history: bool) -> pd.DataFrame:
-    """Official OGD API (needs DATA_GOV_IN_API_KEY).
+    """Official OGD API (needs DATA_GOV_IN_API_KEY); results are cached in data/raw/agmarknet/datagovin_cache.csv.
 
-    History (all Andhra Pradesh markets for each crop; name matching keeps our cluster) is pulled on the
-    first run, with --history, or when the cache is more than 3 days old. Other runs add the current-day file.
+    - History (first run, --history, or a cache older than 30 days): every Andhra Pradesh record for each crop since
+      HISTORY_START. All AP markets are kept, so the market cluster can change without pulling again.
+    - Daily: each of the last REFRESH_DAYS days is re-read with an exact date filter (small, complete answers),
+      plus today's file from the current-price resource.
     """
     key = os.environ.get("DATA_GOV_IN_API_KEY", "").strip()
-    cache = CSV_DIR / "datagovin_cache.csv"
-    old = pd.read_csv(cache, parse_dates=["date"]) if cache.exists() else pd.DataFrame(columns=RAW_COLS)
+    old = _read_cache()
     if not key:
-        return old[RAW_COLS] if not old.empty else pd.DataFrame(columns=RAW_COLS)
-    stale = old.empty or (pd.Timestamp.now().normalize() - old["date"].max()).days > 3
+        return old
     state = catalog["state"]
-    frames = []
+    names = [n for c in catalog["crops"] for n in OGD_COMMODITIES.get(c["id"], [c["en"]])]
+    today = date.today()
+    need_history = history or old.empty or (pd.Timestamp(today) - old["date"].max()).days > 30
+    frames: list[pd.DataFrame] = []
     try:
-        if history or stale:
-            for crop in catalog["crops"]:
-                for name in OGD_COMMODITIES.get(crop["id"], [crop["en"]]):
-                    got, used = _ogd_pull(OGD_HISTORY, key, [
-                        {"State": state, "Commodity": name},
-                        {"State.keyword": state, "Commodity.keyword": name},
-                        {"state": state, "commodity": name},
-                    ])
-                    frames += got
-                    log.add("data_agent", "fetch_agmarknet",
-                            f"data.gov.in history {name}: {sum(len(f) for f in got)} records" + (f" (filters {list(used)})" if used else ""))
-        got, used = _ogd_pull(OGD_CURRENT, key, [{"state.keyword": state}, {"state": state}, {"State": state}])
-        frames += got
-        log.add("data_agent", "fetch_agmarknet", f"data.gov.in current-day file for {state}: {sum(len(f) for f in got)} records")
+        if need_history:
+            for name in names:
+                rows, used, total = _ogd_pull(OGD_HISTORY, key, [{"State": state, "Commodity": name},
+                                                                  {"state": state, "commodity": name}])
+                df = _to_raw(rows)
+                uniq = len(pd.DataFrame(rows).drop_duplicates()) if rows else 0
+                log.add("data_agent", "fetch_agmarknet",
+                        f"data.gov.in history {name}: {len(rows)} records of {total} reported ({uniq} unique); "
+                        f"{int((df['date'] >= pd.Timestamp(HISTORY_START)).sum())} since {HISTORY_START}")
+                frames.append(df)
+        else:
+            got = 0
+            for d in range(REFRESH_DAYS, -1, -1):
+                day = (today - timedelta(days=d)).strftime("%d-%m-%Y")
+                for name in names:
+                    rows, _used, _total = _ogd_pull(OGD_HISTORY, key, [{"State": state, "Commodity": name, "Arrival_Date": day}])
+                    got += len(rows)
+                    frames.append(_to_raw(rows))
+            log.add("data_agent", "fetch_agmarknet", f"data.gov.in history, last {REFRESH_DAYS} days re-read: {got} records")
+        rows, _used, _total = _ogd_pull(OGD_CURRENT, key, [{"state.keyword": state}, {"state": state}])
+        cur = _to_raw(rows)
+        cur = cur[cur["commodity_raw"].astype(str).str.strip().str.lower().isin([n.lower() for n in names])]
+        frames.append(cur)
+        log.add("data_agent", "fetch_agmarknet", f"data.gov.in current-day file: {len(rows)} AP records, {len(cur)} for our crops")
     except Exception as exc:
-        log.add("data_agent", "fetch_agmarknet", f"data.gov.in fetch failed: {exc}", level="warning")
-    if frames:
-        new = map_columns(pd.concat(frames, ignore_index=True))
-        new["source"] = "AGMARKNET"
-        allr = pd.concat([old, new[RAW_COLS]], ignore_index=True)
-        allr = allr.drop_duplicates(subset=["market_raw", "commodity_raw", "variety", "date"], keep="last")
-        cache.parent.mkdir(parents=True, exist_ok=True)
-        allr.to_csv(cache, index=False)
-        return allr[RAW_COLS]
-    return old[RAW_COLS] if not old.empty else pd.DataFrame(columns=RAW_COLS)
+        log.add("data_agent", "fetch_agmarknet", f"data.gov.in fetch failed, using the cache: {exc}", level="warning")
+
+    return merge_into_cache(old, frames, names, log)
+
+
+def merge_into_cache(old: pd.DataFrame, frames: list[pd.DataFrame], names: list[str], log: RunLog) -> pd.DataFrame:
+    """Add freshly pulled rows to the cache (newest copy of a record wins) and save it."""
+    frames = [f for f in frames if f is not None and not f.empty]
+    if not frames:
+        return old
+    allr = pd.concat([f for f in [old, *frames] if not f.empty], ignore_index=True)
+    allr["date"] = pd.to_datetime(allr["date"], errors="coerce")
+    allr = allr[allr["date"] >= pd.Timestamp(HISTORY_START)]
+    allr = allr[allr["commodity_raw"].astype(str).str.strip().str.lower().isin([n.lower() for n in names])]
+    for c in ("market_raw", "variety", "grade", "district", "state"):
+        allr[c] = allr[c].fillna("").astype(str).str.replace(r"\s+", " ", regex=True).str.strip()
+    allr = allr.drop_duplicates(subset=["market_raw", "commodity_raw", "variety", "grade", "date"], keep="last")
+    allr = allr.sort_values(["date", "commodity_raw", "market_raw", "variety", "grade"]).reset_index(drop=True)
+    CACHE.parent.mkdir(parents=True, exist_ok=True)
+    out = allr.copy()
+    out["date"] = out["date"].dt.strftime("%Y-%m-%d")
+    out.to_csv(CACHE, index=False)
+    log.add("data_agent", "save_data", f"data.gov.in cache: {len(allr)} rows, {allr['date'].min().date()} to {allr['date'].max().date()}")
+    return allr[RAW_COLS]
 
 
 def load_real(catalog: dict, log: RunLog, history: bool = False) -> pd.DataFrame:

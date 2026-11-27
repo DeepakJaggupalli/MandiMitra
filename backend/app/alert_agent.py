@@ -7,9 +7,9 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
-from backend.app.assistant import fd, rs
+from backend.app.assistant import fd, loc_te, rs
 from backend.app.db import DB, now
-from backend.app.store import Store, trend_label
+from backend.app.store import Store
 
 CONF_TE = {"high": "ఎక్కువ", "medium": "మధ్యస్థం", "low": "తక్కువ"}
 
@@ -56,16 +56,18 @@ def draft_weekly_bulletin(store: Store, week_start: date | None = None) -> dict:
         top = max(rows, key=lambda r: r["modal"])
         top_m = store.markets[top["market"]]
         ch = hub_row["change_7d_pct"] or 0.0
-        lab = trend_label(ch)
-        word_en = {"rising": f"up {abs(ch):.1f}% this week", "falling": f"down {abs(ch):.1f}% this week", "steady": "steady this week"}[lab]
-        word_te = {"rising": f"ఈ వారం {abs(ch):.1f}% పెరిగింది", "falling": f"ఈ వారం {abs(ch):.1f}% తగ్గింది", "steady": "ఈ వారం స్థిరంగా ఉంది"}[lab]
+        lab = hub_row["trend"]
+        word_en = {"rising": f"up {abs(ch):.1f}% this week", "falling": f"down {abs(ch):.1f}% this week", "steady": "steady this week",
+                   "mixed": "up and down this week"}[lab]
+        word_te = {"rising": f"ఈ వారం {abs(ch):.1f}% పెరిగింది", "falling": f"ఈ వారం {abs(ch):.1f}% తగ్గింది", "steady": "ఈ వారం స్థిరంగా ఉంది",
+                   "mixed": "ఈ వారం ఒడిదుడుకులుగా ఉంది"}[lab]
         en = f"{c['en']}: {hub_m['en']} {rs(hub_row['modal'])} per quintal ({word_en}). Highest today: {top_m['en']} {rs(top['modal'])}."
-        te = f"{c['te']}: {hub_m['te']}లో క్వింటాల్ {rs(hub_row['modal'])} ({word_te}). ఈ రోజు ఎక్కువ ధర: {top_m['te']} {rs(top['modal'])}."
+        te = f"{c['te']}: {loc_te(hub_m)} క్వింటాల్‌కు {rs(hub_row['modal'])} ({word_te}). ఈ రోజు అత్యధిక ధర: {top_m['te']} {rs(top['modal'])}."
         fc = store.forecast(c["id"], hub_row["market"])
         if fc and fc.get("available"):
             s = fc["summary"]
             en += f" Next 7 days at {hub_m['en']}: likely {rs(s['lo'])} to {rs(s['hi'])} ({fc['confidence']} confidence)."
-            te += f" వచ్చే 7 రోజులు {hub_m['te']}లో: {rs(s['lo'])} నుండి {rs(s['hi'])} మధ్య (నమ్మకం: {CONF_TE[fc['confidence']]})."
+            te += f" వచ్చే 7 రోజుల్లో {loc_te(hub_m)}: {rs(s['lo'])} నుండి {rs(s['hi'])} వరకు (నమ్మకం: {CONF_TE[fc['confidence']]})."
             if fc["reasons"]:
                 en += f" Why: {fc['reasons'][0]['en']}."
                 te += f" కారణం: {fc['reasons'][0]['te']}."

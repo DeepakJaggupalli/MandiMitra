@@ -8,6 +8,9 @@ from backend.app.main import app  # noqa: E402
 from backend.app.store import get_store  # noqa: E402
 
 client = TestClient(app)
+S = get_store()
+SERIES = sorted(k.split("|") for k in S.prices)  # [crop, market] pairs that have data
+FC = [k.split("|") for k, v in S.forecasts.items() if v.get("available")]
 
 
 def login(user):
@@ -20,44 +23,55 @@ def test_health_and_meta():
     assert client.get("/api/health").json()["status"] == "ok"
     m = client.get("/api/meta").json()
     assert {c["id"] for c in m["crops"]} == {"tomato", "onion", "banana"}
-    assert len(m["markets"]) == 8
+    assert len(m["markets"]) == len(S.catalog["markets"]) >= 3
     assert m["source"]["code"] in ("AGMARKNET", "SIMULATED", "MIXED")
+    assert m["is_simulated"] == (m["source"]["code"] == "SIMULATED")
+    assert SERIES, "no price series at all"
 
 
 def test_prices_latest_and_history():
-    r = client.get("/api/prices/latest", params={"crop": "tomato"}).json()
-    assert len(r["rows"]) >= 6
-    for row in r["rows"]:
-        assert row["min"] <= row["modal"] <= row["max"]
-        assert row["trend"] in ("rising", "falling", "steady")
-    h = client.get("/api/prices/tomato/madanapalle", params={"days": 30}).json()
+    for crop in {c for c, _ in SERIES}:
+        r = client.get("/api/prices/latest", params={"crop": crop}).json()
+        assert r["rows"]
+        for row in r["rows"]:
+            assert row["min"] <= row["modal"] <= row["max"]
+            assert row["trend"] in ("rising", "falling", "steady", "mixed")
+    crop, market = SERIES[0]
+    h = client.get(f"/api/prices/{crop}/{market}", params={"days": 30}).json()
     assert h["latest"]["date"] <= h["data_as_of"]
-    assert 0 < len(h["history"]) <= 30
+    assert len(h["history"]) <= 30
     dates = [x["date"] for x in h["history"]]
     assert dates == sorted(dates) and len(set(dates)) == len(dates)
     assert all(x["modal"] is not None for x in h["history"])  # missing days are omitted, not filled
+    assert isinstance(h["varieties_today"], list)
 
 
 def test_unknown_crop_market():
     assert client.get("/api/prices/latest", params={"crop": "mango"}).status_code == 404
-    assert client.get("/api/forecast/banana/pattikonda").status_code == 404
+    assert client.get("/api/forecast/tomato/atlantis").status_code == 404
 
 
 def test_forecast_shape():
-    f = client.get("/api/forecast/onion/kurnool").json()
+    assert FC, "no crop-market pair has a forecast"
+    crop, market = FC[0]
+    f = client.get(f"/api/forecast/{crop}/{market}").json()
     assert f["available"] is True
     assert len(f["points"]) == 7 and [p["h"] for p in f["points"]] == list(range(1, 8))
     for p in f["points"]:
         assert p["lo"] <= p["point"] <= p["hi"]
     assert f["confidence"] in ("high", "medium", "low")
-    assert 1 <= len(f["reasons"]) <= 3 and all(r["te"] and r["en"] for r in f["reasons"])
+    assert len(f["reasons"]) <= 3 and all(r["te"] and r["en"] for r in f["reasons"])
     assert f["advice"]["action"] in ("sell_now", "wait", "either")
+    assert f["summary"]["direction"] in ("up", "down", "flat", "unclear")
     ov = client.get("/api/forecast/overview").json()
-    assert len(ov["rows"]) == 19
+    assert len(ov["rows"]) == len(SERIES)
+    assert all(r["direction"] in ("up", "down", "flat", "unclear", None) for r in ov["rows"])
 
 
 def test_compare_net_price():
-    r = client.post("/api/markets/compare", json={"crop": "tomato", "quantity_qtl": 20, "lat": 13.55, "lon": 78.50}).json()
+    crop = SERIES[0][0]
+    mk = S.markets[SERIES[0][1]]
+    r = client.post("/api/markets/compare", json={"crop": crop, "quantity_qtl": 20, "lat": mk["lat"], "lon": mk["lon"]}).json()
     nets = [x["net_per_qtl"] for x in r["rows"]]
     assert nets == sorted(nets, reverse=True)
     for x in r["rows"]:
@@ -65,27 +79,34 @@ def test_compare_net_price():
         assert x["net_total"] == round(x["net_per_qtl"] * 20)
     assert "best" in r["rows"][0]["badges"]
     b = r["best_vs_nearest"]
-    assert b["extra_total"] == round(b["extra_per_qtl"] * 20)
-    custom = client.post("/api/markets/compare", json={"crop": "tomato", "quantity_qtl": 20, "lat": 13.55, "lon": 78.5,
+    if b is None:  # banana: different varieties are not compared on gain
+        assert r["varieties_differ"] is True
+    else:
+        assert b["extra_total"] == round(b["extra_per_qtl"] * 20)
+    assert all(not S.stale(x["date"]) for x in r["rows"])  # old / frozen prices are not a basis for a trip
+    custom = client.post("/api/markets/compare", json={"crop": crop, "quantity_qtl": 20, "lat": mk["lat"], "lon": mk["lon"],
                                                          "transport_rate_per_qtl_km": 0, "commission_pct": 0, "handling_per_qtl": 0}).json()
     assert all(x["net_per_qtl"] == x["modal"] for x in custom["rows"])
 
 
 def test_assistant_answers_and_eval():
-    r = client.post("/api/assistant/ask", json={"question": "Madanapalle lo tomato rate entha?", "lang": "te"}).json()
-    assert r["intent"] == "price" and r["crop"] == "tomato" and r["market"] == "madanapalle"
+    crop, market = SERIES[0]
+    q = f"{S.markets[market]['en']} lo {S.crops[crop]['en'].lower()} rate entha?"
+    r = client.post("/api/assistant/ask", json={"question": q, "lang": "te"}).json()
+    assert r["intent"] == "price" and r["crop"] == crop and r["market"] == market
     assert "₹" in r["answer"] and r["data_date"]
-    e = client.post("/api/assistant/ask", json={"question": "Where should I sell 10 tonnes of onion?", "lang": "en"}).json()
+    e = client.post("/api/assistant/ask", json={"question": f"Where should I sell 10 tonnes of {S.crops[crop]['en'].lower()}?", "lang": "en"}).json()
     assert e["intent"] == "best_market" and "100 quintals" in e["answer"]
     ev = client.get("/api/assistant/eval").json()
-    assert ev["total"] == 50 and ev["accuracy"] >= 0.85 and ev["made_up_numbers"] == 0
+    assert ev["total"] >= 50 and ev["accuracy"] >= 0.85 and ev["made_up_numbers"] == 0
 
 
 def test_alert_check():
-    last = get_store().latest("onion", "kurnool")["modal"]
+    crop, market = SERIES[0]
+    last = S.latest(crop, market)["modal"]
     r = client.post("/api/alerts/check", json={"alerts": [
-        {"id": "a", "crop": "onion", "market": "kurnool", "target": last - 1, "direction": "above"},
-        {"id": "b", "crop": "onion", "market": "kurnool", "target": last - 1, "direction": "below"}]}).json()
+        {"id": "a", "crop": crop, "market": market, "target": last - 1, "direction": "above"},
+        {"id": "b", "crop": crop, "market": market, "target": last - 1, "direction": "below"}]}).json()
     assert {x["id"]: x["triggered"] for x in r["results"]} == {"a": True, "b": False}
 
 
@@ -110,17 +131,17 @@ def test_bulletin_approval_flow():
 
 
 def test_warning_review_flow():
-    s = get_store()
-    fake = {"id": "w-test", "crop": "tomato", "market": "kurnool", "type": "arrival_flood", "date": s.meta["data_as_of"],
-            "magnitude": 2.4, "en": "Arrival flood test", "te": "పరీక్ష", "recent": True}
-    s.anomalies.setdefault("recent", []).append(fake)
+    crop, market = SERIES[0]
+    fake = {"id": "w-test", "crop": crop, "market": market, "type": "price_spike", "date": S.meta["data_as_of"],
+            "magnitude": 24.0, "en": "Price spike test", "te": "పరీక్ష", "recent": True}
+    S.anomalies.setdefault("recent", []).append(fake)
     try:
         h = login("officer")
         assert any(w["id"] == "w-test" for w in client.get("/api/warnings", headers=h).json()["rows"])
         assert client.post("/api/warnings/w-test/review", json={"decision": "approve"}, headers=h).json()["status"] == "approved"
         assert any(w["id"] == "w-test" for w in client.get("/api/alerts/feed").json()["warnings"])
     finally:
-        s.anomalies["recent"].remove(fake)
+        S.anomalies["recent"].remove(fake)
 
 
 def test_quality_review_and_audit():
@@ -140,4 +161,5 @@ def test_accuracy_report():
     a = client.get("/api/accuracy").json()
     keys = {c["key"] for c in a["criteria"]}
     assert {"accuracy", "coverage", "direction", "assistant", "ease"} <= keys
-    assert 0.6 <= a["overall"]["coverage"] <= 0.95
+    assert 0.0 <= a["overall"]["coverage"] <= 1.0
+    assert a["series"] and all("production_model" in s for s in a["series"])

@@ -51,7 +51,7 @@ export function Async<T>({
 
 export function TrendChip({ trend, change }: { trend: Trend; change?: number | null }) {
   const { t } = useApp()
-  const arrow = trend === 'rising' ? '▲' : trend === 'falling' ? '▼' : '▬'
+  const arrow = trend === 'rising' ? '▲' : trend === 'falling' ? '▼' : trend === 'mixed' ? '↕' : '▬'
   return (
     <span className={`chip trend-${trend}`}>
       <span aria-hidden="true">{arrow}</span> {t(trend)}

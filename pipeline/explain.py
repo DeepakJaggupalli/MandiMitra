@@ -70,9 +70,11 @@ def reason_text(group: str, row: pd.Series, crop: dict) -> tuple[str, str] | Non
     if group == "season":
         m = int(g("month"))
         if g("harvest") == 1:
-            return "Peak harvest season in the region, so supply is high", "ఈ ప్రాంతంలో పంట కోత సీజన్, సరుకు ఎక్కువగా వస్తుంది"
+            return ("Usually harvest time in this region (crop calendar estimate)",
+                    "ఈ ప్రాంతంలో సాధారణంగా పంట కోత సమయం (పంట క్యాలెండర్ అంచనా)")
         if g("lean") == 1:
-            return "Lean season, supply is usually low", "సరుకు సాధారణంగా తక్కువగా ఉండే సీజన్"
+            return ("Usually a low-supply time of year (crop calendar estimate)",
+                    "సాధారణంగా సరుకు తక్కువగా ఉండే సమయం (పంట క్యాలెండర్ అంచనా)")
         return f"Usual seasonal pattern for {MONTHS_EN[m - 1]}", f"{MONTHS_TE[m - 1]} నెల సాధారణ సీజన్ ధోరణి"
     if group == "region":
         v = g("region_gap")
@@ -80,22 +82,29 @@ def reason_text(group: str, row: pd.Series, crop: dict) -> tuple[str, str] | Non
             return None
         p = _pct(v)
         if p < 3:
-            return "Price is in line with nearby markets", "ధర సమీప మార్కెట్లతో సమానంగా ఉంది"
+            return "Price is in line with the other tracked markets", "ధర మేము చూస్తున్న ఇతర మార్కెట్లతో సమానంగా ఉంది"
         if v > 0:
-            return f"This market is {p}% above the average of nearby markets", f"ఈ మార్కెట్ ధర సమీప మార్కెట్ల సగటు కంటే {p}% ఎక్కువ"
-        return f"This market is {p}% below the average of nearby markets", f"ఈ మార్కెట్ ధర సమీప మార్కెట్ల సగటు కంటే {p}% తక్కువ"
+            return (f"This market is {p}% above the average of the other tracked markets",
+                    f"ఈ మార్కెట్ ధర మేము చూస్తున్న ఇతర మార్కెట్ల సగటు కంటే {p}% ఎక్కువ")
+        return (f"This market is {p}% below the average of the other tracked markets",
+                f"ఈ మార్కెట్ ధర మేము చూస్తున్న ఇతర మార్కెట్ల సగటు కంటే {p}% తక్కువ")
     if group == "weather":
         r = g("rain_7")
         if not np.isfinite(r):
             return None
         mm = int(round(r))
-        if mm >= 25:
-            return f"Heavy rain in the last week ({mm} mm) can cut supply", f"గత వారం భారీ వర్షం ({mm} మి.మీ.) వల్ల సరుకు తగ్గవచ్చు"
         if mm >= 5:
-            return f"Some rain in the last week ({mm} mm)", f"గత వారం కొంత వర్షం పడింది ({mm} మి.మీ.)"
+            return f"Rain in the last week: {mm} mm", f"గత వారం వర్షం: {mm} మి.మీ."
         return "Dry weather in the last week", "గత వారం వర్షం లేదు"
     if group == "volatility":
-        return "Prices have been unstable in the last 2 weeks", "గత 2 వారాలుగా ధరలు ఒడిదుడుకులుగా ఉన్నాయి"
+        v, q = g("vol_14"), crop.get("vol_q")
+        if not np.isfinite(v) or not q:
+            return None
+        if v >= q[1]:
+            return "Prices have been unstable in the last 2 weeks", "గత 2 వారాలుగా ధరలు ఒడిదుడుకులుగా ఉన్నాయి"
+        if v <= q[0]:
+            return "Prices have been stable in the last 2 weeks", "గత 2 వారాలుగా ధరలు స్థిరంగా ఉన్నాయి"
+        return None
     return None
 
 
@@ -113,6 +122,8 @@ def top_reasons(models: dict, row: pd.Series, crop: dict, k: int = 3) -> list[di
         txt = reason_text(g, row, crop)
         if txt is None:
             continue
+        if g == "volatility" and "unstable" in txt[0] and any(o["key"] == "momentum" and "steady" in o["en"] for o in out):
+            continue  # never "steady last week" and "unstable" on one card
         out.append({"key": g, "en": txt[0], "te": txt[1], "effect": "up" if v > 0 else "down", "weight": round(abs(v) / total, 3)})
         if len(out) == k:
             break
@@ -129,9 +140,11 @@ def confidence(point7: float, lo7: float, hi7: float, notes_in: list[str]) -> tu
     texts = {
         "wide": ("The expected range is wide", "అంచనా పరిధి విస్తృతంగా ఉంది"),
         "anomaly": ("Unusual market movement this week", "ఈ వారం మార్కెట్‌లో అసాధారణ కదలిక ఉంది"),
-        "stale": ("The latest price is a few days old", "తాజా ధర కొన్ని రోజుల క్రితంది"),
+        "stale": ("The latest price is a few days old", "తాజా ధర కొన్ని రోజుల క్రితం నాటిది"),
         "missing": ("Some recent market days were not reported", "ఇటీవల కొన్ని మార్కెట్ రోజుల ధరలు నమోదు కాలేదు"),
         "thin": ("Less than a year of history for this market", "ఈ మార్కెట్‌కు ఏడాది కంటే తక్కువ చరిత్ర ఉంది"),
+        "pooled": ("Short history here, so this uses the pattern of nearby markets",
+                   "ఇక్కడ చరిత్ర తక్కువ, అందుకే సమీప మార్కెట్ల ధోరణి ఆధారంగా అంచనా"),
     }
     if level == 0:
         notes.append("wide")
@@ -141,25 +154,35 @@ def confidence(point7: float, lo7: float, hi7: float, notes_in: list[str]) -> tu
     return CONF_ORDER[level], [{"key": n, "en": texts[n][0], "te": texts[n][1]} for n in notes]
 
 
-def advice(last: float, points: list[dict], conf: str, shelf_life: int) -> dict:
+def advice(last: float, points: list[dict], conf: str, shelf_life: int, direction: str = "flat") -> dict:
     usable = [p for p in points if p["h"] <= max(1, shelf_life)]
     best = max(usable, key=lambda p: p["point"])
     gain = best["point"] / last - 1
     mean_all = float(np.mean([p["point"] for p in points]))
     end_en, end_te = " The decision is yours.", " నిర్ణయం మీదే."
+    if direction == "unclear":
+        return {"action": "either",
+                "en": "There is no clear up or down signal for this week. Use today's price and the range as your guide; "
+                      "selling in parts can reduce risk." + end_en,
+                "te": "ఈ వారం ధర పెరుగుతుందా తగ్గుతుందా అనే స్పష్టమైన సంకేతం లేదు. ఈ రోజు ధర, అంచనా పరిధిని చూసి నిర్ణయించండి; "
+                      "విడతలుగా అమ్మితే నష్ట భయం తగ్గుతుంది." + end_te}
     if conf == "low":
         return {"action": "either",
                 "en": "This week's forecast is uncertain. Selling in parts can reduce your risk." + end_en,
                 "te": "ఈ వారం అంచనా అనిశ్చితంగా ఉంది. విడతలుగా అమ్మితే నష్ట భయం తగ్గుతుంది." + end_te}
-    if gain > 0.05 and best["lo"] > last * 0.97:
+    if direction == "up" and gain > 0.05 and best["lo"] > last * 0.97:
         p, d = int(round(gain * 100)), best["h"]
         return {"action": "wait",
                 "en": f"Prices may rise about {p}% in the next {d} days. If your produce can wait, waiting may help." + end_en,
                 "te": f"వచ్చే {d} రోజుల్లో ధర సుమారు {p}% పెరగవచ్చు. మీ సరుకు నిల్వ ఉండగలిగితే ఆగడం మంచిది కావచ్చు." + end_te}
-    if mean_all < last * 0.97:
+    if direction == "down" and mean_all < last * 0.97:
         return {"action": "sell_now",
-                "en": "Prices are likely to soften this week. Selling soon looks better." + end_en,
-                "te": "ఈ వారం ధరలు తగ్గే అవకాశం ఉంది. త్వరగా అమ్మడం మంచిది." + end_te}
+                "en": "Prices may soften this week. Selling soon may be better." + end_en,
+                "te": "ఈ వారం ధరలు తగ్గే అవకాశం ఉంది. త్వరగా అమ్మడం మంచిది కావచ్చు." + end_te}
+    if direction == "up":
+        return {"action": "either",
+                "en": "Prices may rise a little this week, but not enough to be sure that waiting pays." + end_en,
+                "te": "ఈ వారం ధర కొద్దిగా పెరగవచ్చు, కానీ ఆగితే లాభం వస్తుందని ఖచ్చితంగా చెప్పలేం." + end_te}
     return {"action": "either",
             "en": "Prices look steady this week. Sell when it suits you." + end_en,
             "te": "ఈ వారం ధరలు స్థిరంగా ఉండే అవకాశం ఉంది. మీకు అనుకూలమైనప్పుడు అమ్మండి." + end_te}

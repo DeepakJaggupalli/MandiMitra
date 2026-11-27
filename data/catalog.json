@@ -1,100 +1,1088 @@
 {
-  "_note": "Crops, markets and places for the PoC cluster. Crop calendar months are first estimates to be validated with ANGRAU / AP Horticulture Dept. Market coordinates are approximate (town centre).",
-  "state": "Andhra Pradesh",
-  "crops": [
-    {
-      "id": "tomato", "en": "Tomato", "te": "టమాటా", "shelf_life_days": 4,
-      "peak_months": [12, 1, 2, 3], "lean_months": [6, 7],
-      "agmarknet_names": ["tomato", "tomato (hybrid)", "tomato local", "tomato-hybrid", "tomato - local"],
-      "aliases": ["tomato", "tomatoes", "tamato", "tomoto", "tamata", "tamaata", "tamatar", "tamatalu", "tomatalu", "tamatoes", "టమాటా", "టమాట", "టొమాటో", "టమోటా", "టమాటాలు", "టమాటో"],
-      "markets": ["madanapalle", "pattikonda", "kurnool", "anantapur", "kadapa", "tirupati", "vijayawada"]
-    },
-    {
-      "id": "onion", "en": "Onion", "te": "ఉల్లిపాయ", "shelf_life_days": 30,
-      "peak_months": [9, 10, 11], "lean_months": [5, 6, 7],
-      "agmarknet_names": ["onion", "onion (big)", "onion big", "onion small", "onion - local"],
-      "aliases": ["onion", "onions", "ulli", "ullipaya", "ullipayalu", "ullipaaya", "ulligadda", "ulligaddalu", "ullipay", "ullipayi", "erragadda", "pyaz", "pyaaz", "ఉల్లి", "ఉల్లిపాయ", "ఉల్లిపాయలు", "ఉల్లిగడ్డ", "ఉల్లిగడ్డలు", "ఎర్రగడ్డ"],
-      "markets": ["kurnool", "anantapur", "kadapa", "madanapalle", "tirupati", "vijayawada"]
-    },
-    {
-      "id": "banana", "en": "Banana", "te": "అరటి", "shelf_life_days": 5,
-      "peak_months": [2, 3, 4], "lean_months": [8, 9],
-      "agmarknet_names": ["banana", "banana - green", "banana green", "banana-green", "banana ripe", "banana (ripe)"],
-      "aliases": ["banana", "bananas", "arati", "arathi", "aratipandu", "aratipandlu", "arati pandu", "arati pandlu", "aratikaya", "arati kaya", "aratikayalu", "kela", "ఆరటి", "అరటి", "అరటిపండు", "అరటి పండు", "అరటిపండ్లు", "అరటి పండ్లు", "అరటికాయ", "అరటికాయలు"],
-      "markets": ["pulivendula", "kadapa", "anantapur", "kurnool", "tirupati", "vijayawada"]
-    }
-  ],
-  "markets": [
-    {"id": "madanapalle", "en": "Madanapalle", "te": "మదనపల్లె", "district": "Annamayya", "lat": 13.5503, "lon": 78.5029, "closed_weekday": null,
-     "aliases": ["madanapalle", "madanapalli", "madanpalle", "madanapally", "madanapalle(chittoor)", "madanapalle apmc", "మదనపల్లె", "మదనపల్లి"]},
-    {"id": "pattikonda", "en": "Pattikonda", "te": "పత్తికొండ", "district": "Kurnool", "lat": 15.3964, "lon": 77.5116, "closed_weekday": 6,
-     "aliases": ["pattikonda", "pathikonda", "patikonda", "pattikona", "పత్తికొండ"]},
-    {"id": "kurnool", "en": "Kurnool", "te": "కర్నూలు", "district": "Kurnool", "lat": 15.8281, "lon": 78.0373, "closed_weekday": 6,
-     "aliases": ["kurnool", "karnool", "kurnul", "kurnoolu", "kurnol", "కర్నూలు", "కర్నూల్"]},
-    {"id": "anantapur", "en": "Anantapur", "te": "అనంతపురం", "district": "Anantapuramu", "lat": 14.6819, "lon": 77.6006, "closed_weekday": 6,
-     "aliases": ["anantapur", "anantapuram", "ananthapur", "ananthapuram", "anantapuramu", "ananthapuramu", "అనంతపురం", "అనంతపూర్"]},
-    {"id": "kadapa", "en": "Kadapa", "te": "కడప", "district": "YSR Kadapa", "lat": 14.4673, "lon": 78.8242, "closed_weekday": 6,
-     "aliases": ["kadapa", "cuddapah", "kadappa", "kadapa(ysr)", "kadapa apmc", "కడప"]},
-    {"id": "vijayawada", "en": "Vijayawada", "te": "విజయవాడ", "district": "NTR", "lat": 16.5062, "lon": 80.6480, "closed_weekday": null,
-     "aliases": ["vijayawada", "bezawada", "vijaywada", "vijayavada", "విజయవాడ", "బెజవాడ"]},
-    {"id": "tirupati", "en": "Tirupati", "te": "తిరుపతి", "district": "Tirupati", "lat": 13.6288, "lon": 79.4192, "closed_weekday": null,
-     "aliases": ["tirupati", "tirupathi", "thirupathi", "tirupathy", "thirupati", "తిరుపతి"]},
-    {"id": "pulivendula", "en": "Pulivendula", "te": "పులివెందుల", "district": "YSR Kadapa", "lat": 14.4222, "lon": 78.2257, "closed_weekday": 6,
-     "aliases": ["pulivendula", "pulivendla", "pulivenudla", "పులివెందుల"]}
-  ],
-  "places": [
-    {"id": "madanapalle", "en": "Madanapalle", "district": "Annamayya", "lat": 13.5503, "lon": 78.5029},
-    {"id": "punganur", "en": "Punganur", "district": "Chittoor", "lat": 13.3667, "lon": 78.5833},
-    {"id": "palamaner", "en": "Palamaner", "district": "Chittoor", "lat": 13.2000, "lon": 78.7500},
-    {"id": "chittoor", "en": "Chittoor", "district": "Chittoor", "lat": 13.2172, "lon": 79.1003},
-    {"id": "kuppam", "en": "Kuppam", "district": "Chittoor", "lat": 12.7500, "lon": 78.3500},
-    {"id": "kalikiri", "en": "Kalikiri", "district": "Annamayya", "lat": 13.6333, "lon": 78.7833},
-    {"id": "valmikipuram", "en": "Valmikipuram (Vayalpad)", "district": "Annamayya", "lat": 13.6500, "lon": 78.6333},
-    {"id": "pileru", "en": "Pileru", "district": "Annamayya", "lat": 13.6500, "lon": 79.0333},
-    {"id": "rayachoti", "en": "Rayachoti", "district": "Annamayya", "lat": 14.0500, "lon": 78.7500},
-    {"id": "rajampet", "en": "Rajampet", "district": "Annamayya", "lat": 14.1833, "lon": 79.1667},
-    {"id": "kodur", "en": "Railway Kodur", "district": "Annamayya", "lat": 13.9500, "lon": 79.3500},
-    {"id": "tirupati", "en": "Tirupati", "district": "Tirupati", "lat": 13.6288, "lon": 79.4192},
-    {"id": "srikalahasti", "en": "Srikalahasti", "district": "Tirupati", "lat": 13.7500, "lon": 79.7000},
-    {"id": "puttur", "en": "Puttur", "district": "Tirupati", "lat": 13.4417, "lon": 79.5500},
-    {"id": "nagari", "en": "Nagari", "district": "Chittoor", "lat": 13.3200, "lon": 79.5850},
-    {"id": "kadapa", "en": "Kadapa", "district": "YSR Kadapa", "lat": 14.4673, "lon": 78.8242},
-    {"id": "pulivendula", "en": "Pulivendula", "district": "YSR Kadapa", "lat": 14.4222, "lon": 78.2257},
-    {"id": "vempalle", "en": "Vempalle", "district": "YSR Kadapa", "lat": 14.3667, "lon": 78.4500},
-    {"id": "proddatur", "en": "Proddatur", "district": "YSR Kadapa", "lat": 14.7500, "lon": 78.5500},
-    {"id": "jammalamadugu", "en": "Jammalamadugu", "district": "YSR Kadapa", "lat": 14.8500, "lon": 78.3833},
-    {"id": "mydukur", "en": "Mydukur", "district": "YSR Kadapa", "lat": 14.7333, "lon": 78.7333},
-    {"id": "badvel", "en": "Badvel", "district": "YSR Kadapa", "lat": 14.7500, "lon": 79.0500},
-    {"id": "anantapur", "en": "Anantapur", "district": "Anantapuramu", "lat": 14.6819, "lon": 77.6006},
-    {"id": "dharmavaram", "en": "Dharmavaram", "district": "Sri Sathya Sai", "lat": 14.4142, "lon": 77.7200},
-    {"id": "kadiri", "en": "Kadiri", "district": "Sri Sathya Sai", "lat": 14.1167, "lon": 78.1667},
-    {"id": "hindupur", "en": "Hindupur", "district": "Sri Sathya Sai", "lat": 13.8289, "lon": 77.4911},
-    {"id": "penukonda", "en": "Penukonda", "district": "Sri Sathya Sai", "lat": 14.0833, "lon": 77.6000},
-    {"id": "tadipatri", "en": "Tadipatri", "district": "Anantapuramu", "lat": 14.9081, "lon": 78.0103},
-    {"id": "guntakal", "en": "Guntakal", "district": "Anantapuramu", "lat": 15.1667, "lon": 77.3667},
-    {"id": "gooty", "en": "Gooty", "district": "Anantapuramu", "lat": 15.1167, "lon": 77.6333},
-    {"id": "kalyandurg", "en": "Kalyandurg", "district": "Anantapuramu", "lat": 14.5500, "lon": 77.1000},
-    {"id": "rayadurg", "en": "Rayadurg", "district": "Anantapuramu", "lat": 14.7000, "lon": 76.8500},
-    {"id": "uravakonda", "en": "Uravakonda", "district": "Anantapuramu", "lat": 14.9500, "lon": 77.2667},
-    {"id": "kurnool", "en": "Kurnool", "district": "Kurnool", "lat": 15.8281, "lon": 78.0373},
-    {"id": "pattikonda", "en": "Pattikonda", "district": "Kurnool", "lat": 15.3964, "lon": 77.5116},
-    {"id": "adoni", "en": "Adoni", "district": "Kurnool", "lat": 15.6278, "lon": 77.2750},
-    {"id": "yemmiganur", "en": "Yemmiganur", "district": "Kurnool", "lat": 15.7667, "lon": 77.4833},
-    {"id": "dhone", "en": "Dhone", "district": "Nandyal", "lat": 15.3958, "lon": 77.8728},
-    {"id": "nandyal", "en": "Nandyal", "district": "Nandyal", "lat": 15.4777, "lon": 78.4836},
-    {"id": "allagadda", "en": "Allagadda", "district": "Nandyal", "lat": 15.1333, "lon": 78.5167},
-    {"id": "vijayawada", "en": "Vijayawada", "district": "NTR", "lat": 16.5062, "lon": 80.6480},
-    {"id": "nuzvid", "en": "Nuzvid", "district": "Eluru", "lat": 16.7833, "lon": 80.8500},
-    {"id": "gudivada", "en": "Gudivada", "district": "Krishna", "lat": 16.4333, "lon": 80.9833},
-    {"id": "machilipatnam", "en": "Machilipatnam", "district": "Krishna", "lat": 16.1875, "lon": 81.1389},
-    {"id": "guntur", "en": "Guntur", "district": "Guntur", "lat": 16.3067, "lon": 80.4365},
-    {"id": "tenali", "en": "Tenali", "district": "Guntur", "lat": 16.2430, "lon": 80.6400}
-  ],
-  "defaults": {
-    "transport_rate_per_qtl_km": 0.75,
-    "commission_pct": 4.0,
-    "handling_per_qtl": 10.0,
-    "road_factor": 1.3,
-    "stale_after_days": 3
+ "_note": "Crops, markets and pickup points for the PoC. Markets were chosen from what actually reports to AGMARKNET (data.gov.in) for these crops in Andhra Pradesh: reported in the last 7 days and, for a forecast, enough history. data_names are the exact AGMARKNET market names used to match records; aliases are what farmers may say. Coordinates: OpenStreetMap (Nominatim). Crop calendar months are first estimates to be validated with ANGRAU / AP Horticulture Dept.",
+ "state": "Andhra Pradesh",
+ "crops": [
+  {
+   "id": "tomato",
+   "en": "Tomato",
+   "te": "టమాటా",
+   "shelf_life_days": 4,
+   "peak_months": [
+    12,
+    1,
+    2,
+    3
+   ],
+   "lean_months": [
+    6,
+    7
+   ],
+   "agmarknet_names": [
+    "tomato",
+    "tomato (hybrid)",
+    "tomato local",
+    "tomato-hybrid",
+    "tomato - local"
+   ],
+   "aliases": [
+    "tomato",
+    "tomatoes",
+    "tamato",
+    "tomoto",
+    "tamata",
+    "tamaata",
+    "tamatar",
+    "tamatalu",
+    "tomatalu",
+    "tamatoes",
+    "టమాటా",
+    "టమాట",
+    "టొమాటో",
+    "టమోటా",
+    "టమాటాలు",
+    "టమాటో"
+   ],
+   "markets": [
+    "madanapalle",
+    "kalikiri",
+    "punganur",
+    "palamaner",
+    "mulakalacheruvu",
+    "valmikipuram",
+    "pattikonda",
+    "bkothakota",
+    "vkota",
+    "kuppam"
+   ],
+   "compare_across_varieties": true
+  },
+  {
+   "id": "onion",
+   "en": "Onion",
+   "te": "ఉల్లిపాయ",
+   "shelf_life_days": 30,
+   "peak_months": [
+    9,
+    10,
+    11
+   ],
+   "lean_months": [
+    5,
+    6,
+    7
+   ],
+   "agmarknet_names": [
+    "onion",
+    "onion (big)",
+    "onion big",
+    "onion small",
+    "onion - local"
+   ],
+   "aliases": [
+    "onion",
+    "onions",
+    "ulli",
+    "ullipaya",
+    "ullipayalu",
+    "ullipaaya",
+    "ulligadda",
+    "ulligaddalu",
+    "ullipay",
+    "ullipayi",
+    "erragadda",
+    "pyaz",
+    "pyaaz",
+    "ఉల్లి",
+    "ఉల్లిపాయ",
+    "ఉల్లిపాయలు",
+    "ఉల్లిగడ్డ",
+    "ఉల్లిగడ్డలు",
+    "ఎర్రగడ్డ"
+   ],
+   "markets": [
+    "kurnool",
+    "yerraguntla"
+   ],
+   "compare_across_varieties": true
+  },
+  {
+   "id": "banana",
+   "en": "Banana",
+   "te": "అరటి",
+   "shelf_life_days": 5,
+   "peak_months": [
+    2,
+    3,
+    4
+   ],
+   "lean_months": [
+    8,
+    9
+   ],
+   "agmarknet_names": [
+    "banana"
+   ],
+   "aliases": [
+    "banana",
+    "bananas",
+    "arati",
+    "arathi",
+    "aratipandu",
+    "aratipandlu",
+    "arati pandu",
+    "arati pandlu",
+    "aratikaya",
+    "arati kaya",
+    "aratikayalu",
+    "kela",
+    "ఆరటి",
+    "అరటి",
+    "అరటిపండు",
+    "అరటి పండు",
+    "అరటిపండ్లు",
+    "అరటి పండ్లు",
+    "అరటికాయ",
+    "అరటికాయలు"
+   ],
+   "markets": [
+    "ravulapalem",
+    "ambajipeta",
+    "tiruchanur",
+    "rlykoduru",
+    "siddavatam"
+   ],
+   "compare_across_varieties": false
   }
+ ],
+ "markets": [
+  {
+   "id": "madanapalle",
+   "en": "Madanapalle",
+   "te": "మదనపల్లె",
+   "district": "Annamayya",
+   "lat": 13.5558,
+   "lon": 78.5015,
+   "data_names": [
+    "Madanapalli",
+    "Madanapalli APMC"
+   ],
+   "aliases": [
+    "madanapalle",
+    "madanapalli",
+    "madanpalle",
+    "madanapally",
+    "మదనపల్లి",
+    "మదనపల్లె"
+   ]
+  },
+  {
+   "id": "kalikiri",
+   "en": "Kalikiri",
+   "te": "కలికిరి",
+   "district": "Annamayya",
+   "lat": 13.6483,
+   "lon": 78.8024,
+   "data_names": [
+    "Kalikiri",
+    "Kalikiri APMC"
+   ],
+   "aliases": [
+    "kalikiri",
+    "kalakiri",
+    "కలికిరి"
+   ]
+  },
+  {
+   "id": "punganur",
+   "en": "Punganur",
+   "te": "పుంగనూరు",
+   "district": "Annamayya",
+   "lat": 13.3667,
+   "lon": 78.5833,
+   "data_names": [
+    "Punganur",
+    "Punganur APMC"
+   ],
+   "aliases": [
+    "punganur",
+    "punganuru",
+    "పుంగనూర్",
+    "పుంగనూరు"
+   ]
+  },
+  {
+   "id": "palamaner",
+   "en": "Palamaner",
+   "te": "పలమనేరు",
+   "district": "Chittoor",
+   "lat": 13.1981,
+   "lon": 78.7484,
+   "data_names": [
+    "Palamaner",
+    "Palamaner APMC"
+   ],
+   "aliases": [
+    "palamaner",
+    "palamaneru",
+    "palmaner",
+    "పలమనేర్",
+    "పలమనేరు"
+   ]
+  },
+  {
+   "id": "mulakalacheruvu",
+   "en": "Mulakalacheruvu",
+   "te": "ములకలచెరువు",
+   "district": "Annamayya",
+   "lat": 13.8146,
+   "lon": 78.268,
+   "data_names": [
+    "Mulakalacheruvu",
+    "Mulakalacheruvu APMC"
+   ],
+   "aliases": [
+    "mulakalacheruvu",
+    "mulakala cheruvu",
+    "ములకలచెరువు"
+   ]
+  },
+  {
+   "id": "valmikipuram",
+   "en": "Valmikipuram",
+   "te": "వాల్మీకిపురం",
+   "district": "Annamayya",
+   "lat": 13.6343,
+   "lon": 78.6233,
+   "data_names": [
+    "Valmikipuram APMC",
+    "Vayalapadu",
+    "Vayalapadu APMC"
+   ],
+   "aliases": [
+    "valmikipuram",
+    "vayalpad",
+    "vayalpadu",
+    "vayalapadu",
+    "వాయల్పాడు",
+    "వాల్మీకిపురం",
+    "gurramkonda",
+    "guramkonda",
+    "గుర్రంకొండ"
+   ]
+  },
+  {
+   "id": "pattikonda",
+   "en": "Pattikonda",
+   "te": "పత్తికొండ",
+   "district": "Kurnool",
+   "lat": 15.3954,
+   "lon": 77.5014,
+   "data_names": [
+    "Pattikonda",
+    "Pattikonda APMC"
+   ],
+   "aliases": [
+    "pattikonda",
+    "pathikonda",
+    "patikonda",
+    "పత్తికొండ"
+   ]
+  },
+  {
+   "id": "bkothakota",
+   "en": "B. Kothakota",
+   "te": "బి.కొత్తకోట",
+   "district": "Annamayya",
+   "lat": 13.6596,
+   "lon": 78.2585,
+   "data_names": [
+    "B.Kothakota H/Q Angallu"
+   ],
+   "aliases": [
+    "b kothakota",
+    "b.kothakota",
+    "bkothakota",
+    "beerangi kothakota",
+    "kothakota",
+    "angallu",
+    "బి కొత్తకోట",
+    "కొత్తకోట",
+    "బి.కొత్తకోట"
+   ]
+  },
+  {
+   "id": "vkota",
+   "en": "V. Kota",
+   "te": "వి.కోట",
+   "district": "Chittoor",
+   "lat": 13.002,
+   "lon": 78.4869,
+   "data_names": [
+    "V. Kota Sub-yard of AMC Palamaneru"
+   ],
+   "aliases": [
+    "v kota",
+    "v.kota",
+    "vkota",
+    "venkatagirikota",
+    "వి కోట",
+    "వి.కోట"
+   ]
+  },
+  {
+   "id": "kuppam",
+   "en": "Kuppam",
+   "te": "కుప్పం",
+   "district": "Chittoor",
+   "lat": 12.7452,
+   "lon": 78.3443,
+   "data_names": [
+    "Kuppam APMC",
+    "Kuppam"
+   ],
+   "aliases": [
+    "kuppam",
+    "కుప్పం"
+   ]
+  },
+  {
+   "id": "kurnool",
+   "en": "Kurnool",
+   "te": "కర్నూలు",
+   "district": "Kurnool",
+   "lat": 15.8309,
+   "lon": 78.0425,
+   "data_names": [
+    "Kurnool",
+    "Kurnool APMC"
+   ],
+   "aliases": [
+    "kurnool",
+    "karnool",
+    "kurnul",
+    "kurnoolu",
+    "kurnol",
+    "కర్నూల్",
+    "కర్నూలు"
+   ]
+  },
+  {
+   "id": "yerraguntla",
+   "en": "Yerraguntla",
+   "te": "ఎర్రగుంట్ల",
+   "district": "YSR Kadapa",
+   "lat": 14.6372,
+   "lon": 78.5395,
+   "data_names": [
+    "Yerraguntla APMC",
+    "Yerraguntla"
+   ],
+   "aliases": [
+    "yerraguntla",
+    "erraguntla",
+    "yerragunta",
+    "ఎర్రగుంట్ల"
+   ]
+  },
+  {
+   "id": "ravulapalem",
+   "en": "Ravulapalem",
+   "te": "రావులపాలెం",
+   "district": "Dr. B.R. Ambedkar Konaseema",
+   "lat": 16.7608,
+   "lon": 81.8435,
+   "data_names": [
+    "Ravulapelem",
+    "Ravulapelem APMC",
+    "Ravulapalem (Kothapeta APMC)",
+    "Ravulapalem"
+   ],
+   "aliases": [
+    "ravulapalem",
+    "ravulapelem",
+    "ravulapalam",
+    "kothapeta",
+    "రావులపాలెం"
+   ]
+  },
+  {
+   "id": "ambajipeta",
+   "en": "Ambajipeta",
+   "te": "అంబాజీపేట",
+   "district": "Dr. B.R. Ambedkar Konaseema",
+   "lat": 16.5956,
+   "lon": 81.9447,
+   "data_names": [
+    "Ambajipeta",
+    "Ambajipeta APMC"
+   ],
+   "aliases": [
+    "ambajipeta",
+    "ambajipet",
+    "అంబాజీపేట"
+   ]
+  },
+  {
+   "id": "tiruchanur",
+   "en": "Tiruchanur (Tirupati)",
+   "te": "తిరుచానూరు (తిరుపతి)",
+   "district": "Tirupati",
+   "lat": 13.6314,
+   "lon": 79.4605,
+   "data_names": [
+    "Thiruchanur APMC",
+    "Thiruchanur"
+   ],
+   "aliases": [
+    "tiruchanur",
+    "thiruchanur",
+    "tiruchanoor",
+    "tirupati",
+    "tirupathi",
+    "thirupathi",
+    "తిరుచానూరు",
+    "తిరుపతి",
+    "తిరుచానూరు (తిరుపతి)"
+   ]
+  },
+  {
+   "id": "rlykoduru",
+   "en": "Railway Koduru",
+   "te": "రైల్వే కోడూరు",
+   "district": "Tirupati",
+   "lat": 13.9574,
+   "lon": 79.3488,
+   "data_names": [
+    "Railway Koduru APMC",
+    "Railway Koduru"
+   ],
+   "aliases": [
+    "railway koduru",
+    "railway kodur",
+    "rly koduru",
+    "koduru",
+    "kodur",
+    "కోడూరు",
+    "రైల్వే కోడూరు"
+   ]
+  },
+  {
+   "id": "siddavatam",
+   "en": "Siddavatam",
+   "te": "సిద్ధవటం",
+   "district": "YSR Kadapa",
+   "lat": 14.4683,
+   "lon": 78.9635,
+   "data_names": [
+    "Siddavatam APMC",
+    "Siddavatam"
+   ],
+   "aliases": [
+    "siddavatam",
+    "siddhavatam",
+    "sidhout",
+    "సిద్దవటం",
+    "సిద్ధవటం"
+   ]
+  }
+ ],
+ "places": [
+  {
+   "id": "madanapalle",
+   "en": "Madanapalle",
+   "district": "Annamayya",
+   "lat": 13.5558,
+   "lon": 78.5015,
+   "te": "మదనపల్లె",
+   "aliases": [
+    "మదనపల్లి"
+   ]
+  },
+  {
+   "id": "punganur",
+   "en": "Punganur",
+   "district": "Chittoor",
+   "lat": 13.3667,
+   "lon": 78.5833,
+   "te": "పుంగనూరు",
+   "aliases": []
+  },
+  {
+   "id": "palamaner",
+   "en": "Palamaner",
+   "district": "Chittoor",
+   "lat": 13.1981,
+   "lon": 78.7484,
+   "te": "పలమనేరు",
+   "aliases": []
+  },
+  {
+   "id": "chittoor",
+   "en": "Chittoor",
+   "district": "Chittoor",
+   "lat": 13.2172,
+   "lon": 79.1003,
+   "te": "చిత్తూరు",
+   "aliases": [
+    "chitoor",
+    "chittor"
+   ]
+  },
+  {
+   "id": "kuppam",
+   "en": "Kuppam",
+   "district": "Chittoor",
+   "lat": 12.7452,
+   "lon": 78.3443,
+   "te": "కుప్పం",
+   "aliases": []
+  },
+  {
+   "id": "kalikiri",
+   "en": "Kalikiri",
+   "district": "Annamayya",
+   "lat": 13.6483,
+   "lon": 78.8024,
+   "te": "కలికిరి",
+   "aliases": []
+  },
+  {
+   "id": "valmikipuram",
+   "en": "Valmikipuram (Vayalpad)",
+   "district": "Annamayya",
+   "lat": 13.6343,
+   "lon": 78.6233,
+   "te": "వాల్మీకిపురం",
+   "aliases": [
+    "వాయల్పాడు",
+    "vayalpad",
+    "vayalpadu"
+   ]
+  },
+  {
+   "id": "pileru",
+   "en": "Pileru",
+   "district": "Annamayya",
+   "lat": 13.65,
+   "lon": 79.0333,
+   "te": "పీలేరు",
+   "aliases": [
+    "piler"
+   ]
+  },
+  {
+   "id": "rayachoti",
+   "en": "Rayachoti",
+   "district": "Annamayya",
+   "lat": 14.05,
+   "lon": 78.75,
+   "te": "రాయచోటి",
+   "aliases": [
+    "rayachoty"
+   ]
+  },
+  {
+   "id": "rajampet",
+   "en": "Rajampet",
+   "district": "Annamayya",
+   "lat": 14.1833,
+   "lon": 79.1667,
+   "te": "రాజంపేట",
+   "aliases": [
+    "rajampeta"
+   ]
+  },
+  {
+   "id": "tirupati",
+   "en": "Tirupati",
+   "district": "Tirupati",
+   "lat": 13.6288,
+   "lon": 79.4192,
+   "te": "తిరుపతి",
+   "aliases": [
+    "tirupathi",
+    "thirupathi"
+   ]
+  },
+  {
+   "id": "srikalahasti",
+   "en": "Srikalahasti",
+   "district": "Tirupati",
+   "lat": 13.75,
+   "lon": 79.7,
+   "te": "శ్రీకాళహస్తి",
+   "aliases": [
+    "kalahasti"
+   ]
+  },
+  {
+   "id": "puttur",
+   "en": "Puttur",
+   "district": "Tirupati",
+   "lat": 13.4417,
+   "lon": 79.55,
+   "te": "పుత్తూరు",
+   "aliases": []
+  },
+  {
+   "id": "nagari",
+   "en": "Nagari",
+   "district": "Chittoor",
+   "lat": 13.32,
+   "lon": 79.585,
+   "te": "నగరి",
+   "aliases": []
+  },
+  {
+   "id": "kadapa",
+   "en": "Kadapa",
+   "district": "YSR Kadapa",
+   "lat": 14.4673,
+   "lon": 78.8242,
+   "te": "కడప",
+   "aliases": [
+    "cuddapah"
+   ]
+  },
+  {
+   "id": "pulivendula",
+   "en": "Pulivendula",
+   "district": "YSR Kadapa",
+   "lat": 14.4222,
+   "lon": 78.2257,
+   "te": "పులివెందుల",
+   "aliases": [
+    "pulivendla"
+   ]
+  },
+  {
+   "id": "vempalle",
+   "en": "Vempalle",
+   "district": "YSR Kadapa",
+   "lat": 14.3667,
+   "lon": 78.45,
+   "te": "వేంపల్లె",
+   "aliases": [
+    "vempalli"
+   ]
+  },
+  {
+   "id": "proddatur",
+   "en": "Proddatur",
+   "district": "YSR Kadapa",
+   "lat": 14.75,
+   "lon": 78.55,
+   "te": "ప్రొద్దుటూరు",
+   "aliases": [
+    "proddutur",
+    "proddaturu"
+   ]
+  },
+  {
+   "id": "jammalamadugu",
+   "en": "Jammalamadugu",
+   "district": "YSR Kadapa",
+   "lat": 14.85,
+   "lon": 78.3833,
+   "te": "జమ్మలమడుగు",
+   "aliases": []
+  },
+  {
+   "id": "mydukur",
+   "en": "Mydukur",
+   "district": "YSR Kadapa",
+   "lat": 14.7333,
+   "lon": 78.7333,
+   "te": "మైదుకూరు",
+   "aliases": [
+    "mydukuru"
+   ]
+  },
+  {
+   "id": "badvel",
+   "en": "Badvel",
+   "district": "YSR Kadapa",
+   "lat": 14.75,
+   "lon": 79.05,
+   "te": "బద్వేలు",
+   "aliases": [
+    "badvelu"
+   ]
+  },
+  {
+   "id": "anantapur",
+   "en": "Anantapur",
+   "district": "Anantapuramu",
+   "lat": 14.6819,
+   "lon": 77.6006,
+   "te": "అనంతపురం",
+   "aliases": [
+    "anantapuram",
+    "ananthapur"
+   ]
+  },
+  {
+   "id": "dharmavaram",
+   "en": "Dharmavaram",
+   "district": "Sri Sathya Sai",
+   "lat": 14.4142,
+   "lon": 77.72,
+   "te": "ధర్మవరం",
+   "aliases": []
+  },
+  {
+   "id": "kadiri",
+   "en": "Kadiri",
+   "district": "Sri Sathya Sai",
+   "lat": 14.1167,
+   "lon": 78.1667,
+   "te": "కదిరి",
+   "aliases": []
+  },
+  {
+   "id": "hindupur",
+   "en": "Hindupur",
+   "district": "Sri Sathya Sai",
+   "lat": 13.8289,
+   "lon": 77.4911,
+   "te": "హిందూపురం",
+   "aliases": [
+    "hindupuram"
+   ]
+  },
+  {
+   "id": "penukonda",
+   "en": "Penukonda",
+   "district": "Sri Sathya Sai",
+   "lat": 14.0833,
+   "lon": 77.6,
+   "te": "పెనుకొండ",
+   "aliases": []
+  },
+  {
+   "id": "tadipatri",
+   "en": "Tadipatri",
+   "district": "Anantapuramu",
+   "lat": 14.9081,
+   "lon": 78.0103,
+   "te": "తాడిపత్రి",
+   "aliases": [
+    "tadpatri"
+   ]
+  },
+  {
+   "id": "guntakal",
+   "en": "Guntakal",
+   "district": "Anantapuramu",
+   "lat": 15.1667,
+   "lon": 77.3667,
+   "te": "గుంతకల్లు",
+   "aliases": [
+    "guntakallu"
+   ]
+  },
+  {
+   "id": "gooty",
+   "en": "Gooty",
+   "district": "Anantapuramu",
+   "lat": 15.1167,
+   "lon": 77.6333,
+   "te": "గుత్తి",
+   "aliases": [
+    "gutti"
+   ]
+  },
+  {
+   "id": "kalyandurg",
+   "en": "Kalyandurg",
+   "district": "Anantapuramu",
+   "lat": 14.55,
+   "lon": 77.1,
+   "te": "కళ్యాణదుర్గం",
+   "aliases": [
+    "kalyanadurgam"
+   ]
+  },
+  {
+   "id": "rayadurg",
+   "en": "Rayadurg",
+   "district": "Anantapuramu",
+   "lat": 14.7,
+   "lon": 76.85,
+   "te": "రాయదుర్గం",
+   "aliases": [
+    "rayadurgam"
+   ]
+  },
+  {
+   "id": "uravakonda",
+   "en": "Uravakonda",
+   "district": "Anantapuramu",
+   "lat": 14.95,
+   "lon": 77.2667,
+   "te": "ఉరవకొండ",
+   "aliases": []
+  },
+  {
+   "id": "kurnool",
+   "en": "Kurnool",
+   "district": "Kurnool",
+   "lat": 15.8309,
+   "lon": 78.0425,
+   "te": "కర్నూలు",
+   "aliases": [
+    "karnool"
+   ]
+  },
+  {
+   "id": "pattikonda",
+   "en": "Pattikonda",
+   "district": "Kurnool",
+   "lat": 15.3954,
+   "lon": 77.5014,
+   "te": "పత్తికొండ",
+   "aliases": [
+    "pathikonda"
+   ]
+  },
+  {
+   "id": "adoni",
+   "en": "Adoni",
+   "district": "Kurnool",
+   "lat": 15.6278,
+   "lon": 77.275,
+   "te": "ఆదోని",
+   "aliases": [
+    "adhoni"
+   ]
+  },
+  {
+   "id": "yemmiganur",
+   "en": "Yemmiganur",
+   "district": "Kurnool",
+   "lat": 15.7667,
+   "lon": 77.4833,
+   "te": "ఎమ్మిగనూరు",
+   "aliases": [
+    "emmiganur"
+   ]
+  },
+  {
+   "id": "dhone",
+   "en": "Dhone",
+   "district": "Nandyal",
+   "lat": 15.3958,
+   "lon": 77.8728,
+   "te": "డోన్",
+   "aliases": [
+    "done"
+   ]
+  },
+  {
+   "id": "nandyal",
+   "en": "Nandyal",
+   "district": "Nandyal",
+   "lat": 15.4777,
+   "lon": 78.4836,
+   "te": "నంద్యాల",
+   "aliases": [
+    "nandyala"
+   ]
+  },
+  {
+   "id": "allagadda",
+   "en": "Allagadda",
+   "district": "Nandyal",
+   "lat": 15.1333,
+   "lon": 78.5167,
+   "te": "ఆళ్లగడ్డ",
+   "aliases": [
+    "allagada"
+   ]
+  },
+  {
+   "id": "vijayawada",
+   "en": "Vijayawada",
+   "district": "NTR",
+   "lat": 16.5062,
+   "lon": 80.648,
+   "te": "విజయవాడ",
+   "aliases": [
+    "bezawada"
+   ]
+  },
+  {
+   "id": "nuzvid",
+   "en": "Nuzvid",
+   "district": "Eluru",
+   "lat": 16.7833,
+   "lon": 80.85,
+   "te": "నూజివీడు",
+   "aliases": [
+    "nuzividu"
+   ]
+  },
+  {
+   "id": "gudivada",
+   "en": "Gudivada",
+   "district": "Krishna",
+   "lat": 16.4333,
+   "lon": 80.9833,
+   "te": "గుడివాడ",
+   "aliases": []
+  },
+  {
+   "id": "machilipatnam",
+   "en": "Machilipatnam",
+   "district": "Krishna",
+   "lat": 16.1875,
+   "lon": 81.1389,
+   "te": "మచిలీపట్నం",
+   "aliases": [
+    "bandar"
+   ]
+  },
+  {
+   "id": "guntur",
+   "en": "Guntur",
+   "district": "Guntur",
+   "lat": 16.3067,
+   "lon": 80.4365,
+   "te": "గుంటూరు",
+   "aliases": []
+  },
+  {
+   "id": "tenali",
+   "en": "Tenali",
+   "district": "Guntur",
+   "lat": 16.243,
+   "lon": 80.64,
+   "te": "తెనాలి",
+   "aliases": []
+  },
+  {
+   "id": "mulakalacheruvu",
+   "en": "Mulakalacheruvu",
+   "district": "Annamayya",
+   "lat": 13.8146,
+   "lon": 78.268,
+   "te": "ములకలచెరువు",
+   "aliases": []
+  },
+  {
+   "id": "bkothakota",
+   "en": "B. Kothakota",
+   "district": "Annamayya",
+   "lat": 13.6596,
+   "lon": 78.2585,
+   "te": "బి.కొత్తకోట",
+   "aliases": [
+    "బి కొత్తకోట",
+    "b kothakota",
+    "kothakota"
+   ]
+  },
+  {
+   "id": "guramkonda",
+   "en": "Gurramkonda",
+   "district": "Annamayya",
+   "lat": 13.7803,
+   "lon": 78.5891,
+   "te": "గుర్రంకొండ",
+   "aliases": [
+    "guramkonda",
+    "gurramkonda"
+   ]
+  },
+  {
+   "id": "vkota",
+   "en": "V. Kota",
+   "district": "Chittoor",
+   "lat": 13.002,
+   "lon": 78.4869,
+   "te": "వి.కోట",
+   "aliases": [
+    "వి కోట",
+    "v kota",
+    "venkatagirikota"
+   ]
+  },
+  {
+   "id": "yerraguntla",
+   "en": "Yerraguntla",
+   "district": "YSR Kadapa",
+   "lat": 14.6372,
+   "lon": 78.5395,
+   "te": "ఎర్రగుంట్ల",
+   "aliases": [
+    "erraguntla"
+   ]
+  },
+  {
+   "id": "ravulapalem",
+   "en": "Ravulapalem",
+   "district": "Dr. B.R. Ambedkar Konaseema",
+   "lat": 16.7608,
+   "lon": 81.8435,
+   "te": "రావులపాలెం",
+   "aliases": [
+    "ravulapalam"
+   ]
+  },
+  {
+   "id": "ambajipeta",
+   "en": "Ambajipeta",
+   "district": "Dr. B.R. Ambedkar Konaseema",
+   "lat": 16.5956,
+   "lon": 81.9447,
+   "te": "అంబాజీపేట",
+   "aliases": []
+  },
+  {
+   "id": "tiruchanur",
+   "en": "Tiruchanur",
+   "district": "Tirupati",
+   "lat": 13.6314,
+   "lon": 79.4605,
+   "te": "తిరుచానూరు",
+   "aliases": [
+    "thiruchanur",
+    "tiruchanoor"
+   ]
+  },
+  {
+   "id": "rlykoduru",
+   "en": "Railway Koduru",
+   "district": "Tirupati",
+   "lat": 13.9574,
+   "lon": 79.3488,
+   "te": "రైల్వే కోడూరు",
+   "aliases": [
+    "కోడూరు",
+    "koduru",
+    "kodur",
+    "railway kodur"
+   ]
+  },
+  {
+   "id": "siddavatam",
+   "en": "Siddavatam",
+   "district": "YSR Kadapa",
+   "lat": 14.4683,
+   "lon": 78.9635,
+   "te": "సిద్ధవటం",
+   "aliases": [
+    "సిద్దవటం",
+    "sidhout"
+   ]
+  }
+ ],
+ "defaults": {
+  "transport_rate_per_qtl_km": 0.75,
+  "commission_pct": 4.0,
+  "handling_per_qtl": 10.0,
+  "road_factor": 1.3,
+  "max_compare_km": 200,
+  "stale_after_days": 3
+ }
 }

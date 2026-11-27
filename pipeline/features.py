@@ -83,11 +83,16 @@ def build_panel(clean_df: pd.DataFrame, weather: pd.DataFrame | None, catalog: d
         frames.append(p.reset_index())
 
     panel = pd.concat(frames, ignore_index=True)
-    region = panel.groupby(["crop", "date"])["lp"].mean().rename("region_lp")
-    panel = panel.join(region, on=["crop", "date"])
+    # average of the crop's other tracked markets on day t, from reports known on day t (a market's last report is
+    # carried for at most 7 days), so it never depends on whether a market reports again later
+    regions = []
+    for crop, g in panel.groupby("crop"):
+        wide = g.pivot_table(index="date", columns="market", values="modal", aggfunc="first")
+        cal = pd.date_range(wide.index.min(), wide.index.max(), freq="D")
+        wide = np.log(wide.reindex(cal)).ffill(limit=7)
+        reg = wide.mean(axis=1, skipna=True)
+        regions.append(pd.DataFrame({"crop": crop, "date": cal, "region_lp": reg.to_numpy(), "region_ret_7": reg.diff(7).to_numpy()}))
+    panel = panel.merge(pd.concat(regions, ignore_index=True), on=["crop", "date"], how="left")
     panel["region_gap"] = panel["lp"] - panel["region_lp"]
-    rr = panel[["crop", "date", "region_lp"]].drop_duplicates().sort_values(["crop", "date"])
-    rr["region_ret_7"] = rr.groupby("crop")["region_lp"].diff(7)
-    panel = panel.merge(rr[["crop", "date", "region_ret_7"]], on=["crop", "date"], how="left")
     panel = panel.replace([np.inf, -np.inf], np.nan)
     return panel.sort_values(["crop", "market", "date"]).reset_index(drop=True)

@@ -11,7 +11,7 @@ import argparse
 import json
 import sys
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 import numpy as np
 import pandas as pd
@@ -23,11 +23,11 @@ from pipeline.explain import advice, confidence, top_reasons
 from pipeline.features import build_panel
 from pipeline.forecast import LABELS, run_forecasts
 from pipeline.sources.agmarknet import RAW_COLS, load_real, map_columns
-from pipeline.sources.simulate import SIM_START, simulate
+from pipeline.sources.simulate import simulate
 from pipeline.sources.weather import fetch_weather
 
 SOURCES = {
-    "AGMARKNET": {"code": "AGMARKNET", "label_en": "AGMARKNET", "label_te": "అగ్‌మార్క్‌నెట్", "is_simulated": False},
+    "AGMARKNET": {"code": "AGMARKNET", "label_en": "AGMARKNET via data.gov.in", "label_te": "అగ్‌మార్క్‌నెట్ (data.gov.in)", "is_simulated": False},
     "SIMULATED": {"code": "SIMULATED", "label_en": "Sample data (simulated, AGMARKNET format)",
                   "label_te": "నమూనా సమాచారం (అనుకరణ, అగ్‌మార్క్‌నెట్ ఫార్మాట్)", "is_simulated": True},
 }
@@ -70,20 +70,32 @@ def build_forecast_json(key, prod, panel_s, crop_cfg, as_of_global, events_recen
     if len(reported) < 365:
         notes.append("thin")
     p7 = points[-1]
+    if prod.get("fallback"):
+        notes.append("pooled")
     conf, conf_notes = confidence(p7["point"], p7["lo"], p7["hi"], notes)
+    if prod.get("fallback"):
+        conf = "low"
     mean_pt = float(np.mean([p["point"] for p in points]))
     direction = "up" if mean_pt > last * 1.03 else "down" if mean_pt < last * 0.97 else "flat"
+    if direction in ("up", "down") and not prod.get("direction_ok", False):
+        direction = "unclear"   # no proven up/down skill here: say so, don't guess
+    if direction == "flat" and not prod.get("flat_ok", False):
+        direction = "unclear"   # "no big change" was not reliable here either
     return {**base, "available": True, "as_of": str(last_date), "last_price": r10(last),
             "model": prod["model"], "model_label": LABELS[prod["model"]],
             "confidence": conf, "confidence_notes": conf_notes, "points": points,
             "summary": {"point_mean": r10(mean_pt), "lo": min(p["lo"] for p in points), "hi": max(p["hi"] for p in points), "direction": direction},
-            "reasons": top_reasons(lgb_models, row, crop_cfg),
-            "advice": advice(last, points, conf, crop_cfg["shelf_life_days"]),
+            "reasons": top_reasons(lgb_models, row, crop_cfg) if prod["model"] == "lightgbm" else [],
+            "advice": advice(last, points, conf, crop_cfg["shelf_life_days"], direction),
             "anomaly": {k: anomaly[k] for k in ("type", "date", "en", "te")} if anomaly else None}
 
 
 def criteria(acc: dict, history: list[dict]) -> list[dict]:
     o = acc["overall"]
+    if o.get("improvement_pct") is None:
+        return [{"key": k, "name_en": n, "name_te": n, "target": "-", "value": "Not enough history for a backtest", "passed": None}
+                for k, n in (("accuracy", "Forecast accuracy vs simple baseline"), ("coverage", "Honest price range"),
+                             ("direction", "Direction of movement (up / down)"))]
     last30 = [h for h in history if h["date"] >= str(ist_today() - timedelta(days=30))]
     ok_days = len({h["date"] for h in last30 if h["status"] == "ok"})
     tracked = len({h["date"] for h in last30}) or 1
@@ -97,7 +109,11 @@ def criteria(acc: dict, history: list[dict]) -> list[dict]:
         {"key": "coverage", "name_en": "Honest price range", "name_te": "నిజాయితీ గల ధర పరిధి",
          "target": "About 80% of actual prices inside the range", "value": f"{o['coverage']:.0%}", "passed": 0.75 <= o["coverage"] <= 0.88},
         {"key": "direction", "name_en": "Direction of movement (up / down)", "name_te": "ధర దిశ (పెరుగుదల / తగ్గుదల)",
-         "target": "Correct at least 6 times in 10", "value": f"{o['direction_accuracy']:.0%} of {o['direction_n']} clear moves", "passed": o["direction_accuracy"] >= 0.6},
+         "target": "Correct at least 6 times in 10",
+         "value": (f"{o['direction_accuracy']:.0%} of {o['direction_n']} up/down calls shown on unseen days "
+                   f"(a call was shown on {o.get('direction_call_rate', 0):.0%} of days; otherwise 'no clear trend')")
+                  if o.get("direction_accuracy") is not None else "No market had proven up/down skill, so no arrows were shown",
+         "passed": (o["direction_accuracy"] >= 0.6) if o.get("direction_accuracy") is not None else None},
     ]
 
 
@@ -113,7 +129,7 @@ def main(argv=None) -> int:
     end = datetime.fromisoformat(args.end).date() if args.end else ist_today() - timedelta(days=1)
     log.add("data_agent", "start", f"daily run, source={args.source}, data up to {end}")
 
-    weather = fetch_weather(catalog["markets"], SIM_START, end, log)
+    weather = fetch_weather(catalog["markets"], date(2022, 1, 1), end, log)
     real = load_real(catalog, log, history=args.history) if args.source != "simulated" else pd.DataFrame(columns=RAW_COLS)
     if args.source == "real" and real.empty:
         log.add("data_agent", "fetch_agmarknet", "no real data found", level="error")
@@ -132,12 +148,18 @@ def main(argv=None) -> int:
         log.add("data_agent", "fetch_agmarknet", f"no real data configured; generated {len(sim)} simulated AGMARKNET-format rows")
 
     clean_df, quality = clean(raw, catalog, end, log)
+    latest_varieties = quality.pop("latest_varieties", {})
+    series_info = {f"{x['crop']}|{x['market']}": x for x in quality["series"]}
     as_of = clean_df["date"].max().date()
     panel = build_panel(clean_df, weather, catalog)
     acc, production, lgb_prod = run_forecasts(panel, catalog, log)
     anomalies = detect(panel, catalog, log)
 
     crops = {c["id"]: c for c in catalog["crops"]}
+    recent_year = panel[panel["date"] > panel["date"].max() - pd.Timedelta(days=365)]
+    for cid, c in crops.items():  # crop-level volatility bands, so "unstable"/"stable" reasons follow the data
+        v = recent_year.loc[recent_year["crop"] == cid, "vol_14"].dropna()
+        c["vol_q"] = (float(v.quantile(0.25)), float(v.quantile(0.75))) if len(v) > 30 else None
     forecasts = {}
     for (crop, market), s in panel.groupby(["crop", "market"]):
         forecasts[f"{crop}|{market}"] = build_forecast_json((crop, market), production.get((crop, market)), s, crops[crop],
@@ -152,6 +174,13 @@ def main(argv=None) -> int:
             "dates": s["date"].dt.strftime("%Y-%m-%d").tolist(),
             "min": s["min"].astype(int).tolist(), "max": s["max"].astype(int).tolist(), "modal": s["modal"].astype(int).tolist(),
             "arr": [None if pd.isna(v) else round(float(v), 1) for v in s["arrivals_t"]],
+            "variety": series_info.get(f"{crop}|{market}", {}).get("variety", ""),
+            "grade": series_info.get(f"{crop}|{market}", {}).get("grade", ""),
+            "price_method": series_info.get(f"{crop}|{market}", {}).get("method", ""),
+            "latest_varieties": latest_varieties.get(f"{crop}|{market}", []),
+            "main_varieties": series_info.get(f"{crop}|{market}", {}).get("main_varieties", []),
+            "frozen_since": series_info.get(f"{crop}|{market}", {}).get("frozen_since"),
+            "last_report": series_info.get(f"{crop}|{market}", {}).get("last_report"),
         }
 
     hist_path = PROCESSED / "run_history.json"

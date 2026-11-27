@@ -47,6 +47,7 @@ export function CompareMarkets({
   const [alertMarket, setAlertMarket] = useState<string>('')
   const [alertMsg, setAlertMsg] = useState<string | null>(null)
   const places = useAsync(() => api.places(), [])
+  const picked = useRef(false)
 
   const placeRows: Place[] = places.data?.rows ?? []
 
@@ -137,7 +138,7 @@ export function CompareMarkets({
 
   // remember the farmer's pickup point + lot size so the assistant can answer "where should I sell" for them
   useEffect(() => {
-    if (!origin || storageKey !== 'mm_compare') return
+    if (!origin || storageKey !== 'mm_compare' || !picked.current) return  // only a pickup point the farmer chose
     const label = placeId === '__geo' ? 'geo' : placeRows.find((x) => x.id === placeId)?.en ?? ''
     saveJSON('mm_origin', { lat: origin.lat, lon: origin.lon, label, quantity_qtl: quantityQtl > 0 ? quantityQtl : undefined })
   }, [origin, placeId, placeRows, quantityQtl, storageKey])
@@ -151,6 +152,7 @@ export function CompareMarkets({
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setGeo({ lat: pos.coords.latitude, lon: pos.coords.longitude })
+        picked.current = true
         setPlaceId('__geo')
         setGeoMsg(null)
       },
@@ -184,7 +186,7 @@ export function CompareMarkets({
         <label className="field field-wide">
           <span>{t('pickup')}</span>
           <div className="row-inline">
-            <select value={placeId} onChange={(e) => setPlaceId(e.target.value)}>
+            <select value={placeId} onChange={(e) => { picked.current = true; setPlaceId(e.target.value) }}>
               {placeId === '__geo' && <option value="__geo">{t('myLocation')}</option>}
               {placeRows.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -253,6 +255,17 @@ export function CompareMarkets({
       {result && (
         <>
           <p className="muted small">{t('moneyInHand')}</p>
+          {(result as { varieties_differ?: boolean }).varieties_differ && <p className="muted small">{t('varietiesDiffer')}</p>}
+          {(result as { excluded_stale?: number }).excluded_stale ? (
+            <p className="muted small">{t('staleExcluded', { n: (result as { excluded_stale?: number }).excluded_stale ?? 0 })}</p>
+          ) : null}
+          {(result as { excluded_far?: number }).excluded_far ? (
+            <p className="muted small">
+              {(result as { far_only?: boolean }).far_only
+                ? t('farOnly')
+                : t('farExcluded', { n: (result as { excluded_far?: number }).excluded_far ?? 0, km: (result as { assumptions: { max_km?: number } }).assumptions.max_km ?? 200 })}
+            </p>
+          ) : null}
           {bvn && (
             <div className="callout callout-good">
               {bvn.best === bvn.nearest || bvn.extra_total <= 0
@@ -272,6 +285,13 @@ export function CompareMarkets({
                   <span className="rank-no">{r.rank}</span>
                   <div className="rank-title">
                     <strong>{marketName(r.market)}</strong>
+                    {r.variety ? (
+                      <div className="muted small">
+                        {t('varietyLabel')}: {r.variety}
+                      </div>
+                    ) : r.price_method === 'median' ? (
+                      <div className="muted small">{t('allVarietiesMedian')}</div>
+                    ) : null}
                     <div className="badges">
                       {r.badges.map((b) => (
                         <span key={b} className={`chip badge-${b}`}>

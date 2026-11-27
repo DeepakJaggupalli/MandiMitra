@@ -78,8 +78,18 @@ class Store:
         arr_chg = pct(sum(a_now) / len(a_now), sum(a_prev) / len(a_prev)) if a_now and a_prev else None
         last6 = s["modal"][-6:]
         moves = [b - a for a, b in zip(last6, last6[1:])]
-        return {"label": trend_label(c7), "change_7d_pct": c7, "change_30d_pct": c30, "arrivals_change_7d_pct": arr_chg,
-                "down_days_last5": sum(1 for m in moves if m < 0), "up_days_last5": sum(1 for m in moves if m > 0)}
+        down, up = sum(1 for m in moves if m < 0), sum(1 for m in moves if m > 0)
+        m_all = s["modal"]
+        short = pct(sum(m_all[-3:]) / 3, sum(m_all[-6:-3]) / 3) if len(m_all) >= 6 else None
+        label = trend_label(c7)
+        # "rising" must not sit next to "fell on 3 of the last 5 days": if the week-on-week change and the last few
+        # reports disagree, the honest label is "up and down"
+        if short is not None and trend_label(short) != label:
+            label = "mixed"
+        if (label == "rising" and down >= 3) or (label == "falling" and up >= 3):
+            label = "mixed"
+        return {"label": label, "change_7d_pct": c7, "change_30d_pct": c30, "change_last3_pct": short,
+                "arrivals_change_7d_pct": arr_chg, "down_days_last5": down, "up_days_last5": up}
 
     def stale(self, day: str) -> bool:
         return (self.data_as_of - date.fromisoformat(day)).days > self.defaults["stale_after_days"]

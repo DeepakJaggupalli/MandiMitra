@@ -3,7 +3,7 @@
 export const API_BASE = '/api'
 
 export type Lang = 'te' | 'en'
-export type Trend = 'rising' | 'falling' | 'steady'
+export type Trend = 'rising' | 'falling' | 'steady' | 'mixed'
 export type Confidence = 'high' | 'medium' | 'low'
 export type AnomalyType = 'arrival_flood' | 'price_spike' | 'price_crash'
 export type Role = 'admin' | 'officer' | 'fpo'
@@ -103,6 +103,14 @@ export interface PriceHistoryResponse {
   trend: PriceTrend
   history: PricePoint[]
   last_year: { date: string; modal: number }[]
+  variety?: string
+  grade?: string
+  price_method?: string
+  varieties_today?: { variety: string; grade: string; min: number; max: number; modal: number }[]
+  main_varieties?: string[]
+  frozen_since?: string | null
+  last_report?: string | null
+  stale?: boolean
 }
 
 export interface Bilingual {
@@ -140,7 +148,7 @@ export interface ForecastAvailable {
   confidence: Confidence
   confidence_notes: Bilingual[]
   points: ForecastPoint[]
-  summary: { point_mean: number; lo: number; hi: number; direction: 'up' | 'down' | 'flat' }
+  summary: { point_mean: number; lo: number; hi: number; direction: 'up' | 'down' | 'flat' | 'unclear' }
   reasons: Reason[]
   advice: { action: 'sell_now' | 'wait' | 'either' } & Bilingual
   anomaly: Anomaly | null
@@ -169,7 +177,11 @@ export interface OverviewRow {
   point_mean: number | null
   lo: number | null
   hi: number | null
-  direction: 'up' | 'down' | 'flat' | null
+  direction: 'up' | 'down' | 'flat' | 'unclear' | null
+  stale?: boolean
+  frozen_since?: string | null
+  variety?: string
+  price_method?: string
   confidence: Confidence | null
   model: string | null
   anomaly_type: AnomalyType | null
@@ -212,6 +224,8 @@ export interface CompareRow {
   badges: string[]
   flags: string[]
   forecast: { point_mean: number; lo: number; hi: number; confidence: Confidence } | null
+  variety?: string
+  price_method?: string
 }
 
 export interface CompareResponse {
@@ -325,8 +339,9 @@ export interface AccuracyResponse {
     best_baseline: string
     improvement_pct: number
     coverage: number
-    direction_accuracy: number
+    direction_accuracy: number | null
     direction_n?: number
+    direction_call_rate?: number
   }
   selection_counts?: Record<string, number>
   criteria: Criterion[]
@@ -339,7 +354,7 @@ export interface AccuracyResponse {
     selected: string
     production_model?: string
     coverage: number
-    direction_accuracy: number
+    direction_accuracy: number | null
     improvement_pct: number
   }[]
 }

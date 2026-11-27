@@ -20,6 +20,7 @@ MON_TE = ["జనవరి", "ఫిబ్రవరి", "మార్చి", "
 def _texts(kind: str, crop: dict, market: dict, iso: str, mag: float) -> tuple[str, str]:
     c_en, c_te, m_en, m_te = crop["en"], crop["te"], market["en"], market["te"]
     y, mo, d = (int(x) for x in iso.split("-"))
+    m_te = f"{m_te} మార్కెట్" if "(" in m_te else m_te
     date, date_te = f"{d} {MON_EN[mo - 1]}", f"{MON_TE[mo - 1]} {d}"
     if kind == "arrival_flood":
         x = f"{mag:.1f}"

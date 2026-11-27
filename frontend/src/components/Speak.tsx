@@ -87,17 +87,27 @@ export function SpeakButton({ id, te, en, big = false }: { id: string; te: strin
 /** Plain spoken summary (no ₹ sign or commas, so voices read it as a number). */
 export function spokenSummary(
   cropTe: string, cropEn: string, marketTe: string, marketEn: string, modal: number,
-  direction: 'up' | 'down' | 'flat' | null, pointMean: number | null,
+  direction: 'up' | 'down' | 'flat' | 'unclear' | null, pointMean: number | null,
+  dayTe?: string | null, dayEn?: string | null,
 ): { te: string; en: string } {
   const n = Math.round(modal)
-  let te = `${marketTe}లో ${cropTe} ధర ఈ రోజు క్వింటాల్‌కు ${n} రూపాయలు.`
-  let en = `${cropEn} at ${marketEn}: today ${n} rupees per quintal.`
-  if (direction && pointMean != null) {
+  const at = marketTe.includes('(') ? `${marketTe} మార్కెట్‌లో` : `${marketTe}లో`
+  // say the report's own date when it is not today's
+  let te = `${at} ${cropTe} ధర ${dayTe ? `${dayTe}న` : 'ఈ రోజు'} క్వింటాల్‌కు ${n} రూపాయలు.`
+  let en = `${cropEn} at ${marketEn}: ${dayEn ? `on ${dayEn}` : 'today'} ${n} rupees per quintal.`
+  if (direction === 'unclear') {
+    te += ' వచ్చే 7 రోజుల్లో ధర పెరుగుతుందో తగ్గుతుందో ఖచ్చితంగా చెప్పలేం.'
+    en += " For the next 7 days we can't say for sure whether it will rise or fall."
+  } else if (direction && pointMean != null) {
     const p = Math.round(pointMean)
-    const dirTe = direction === 'up' ? 'పెరిగే అవకాశం ఉంది' : direction === 'down' ? 'తగ్గే అవకాశం ఉంది' : 'దాదాపు ఇలాగే ఉండే అవకాశం ఉంది'
-    const dirEn = direction === 'up' ? 'likely to rise' : direction === 'down' ? 'likely to fall' : 'likely to stay about the same'
+    const dirTe = direction === 'up' ? 'పెరగవచ్చు' : direction === 'down' ? 'తగ్గవచ్చు' : 'పెద్దగా మారకపోవచ్చు'
+    const dirEn = direction === 'up' ? 'may rise' : direction === 'down' ? 'may fall' : 'may not change much'
     te += ` వచ్చే 7 రోజుల్లో ధర ${dirTe}, సుమారు ${p} రూపాయలు.`
     en += ` In the next 7 days the price is ${dirEn}, around ${p} rupees.`
+  }
+  if (direction) {
+    te += ' ఇది అంచనా మాత్రమే, హామీ ధర కాదు.'
+    en += ' This is an estimate, not a guaranteed price.'
   }
   return { te, en }
 }

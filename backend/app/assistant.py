@@ -22,28 +22,44 @@ TELUGU = re.compile(r"[ఀ-౿]")
 ROMAN_TE = {"lo", "entha", "enta", "dhara", "dara", "ela", "undi", "undhi", "ammala", "aagala", "agala", "ekkada", "emiti",
             "repu", "ivala", "ivvala", "eroju", "vaaram", "varam", "perugutunda", "taggutunda", "cheppu", "cheppandi", "kavali",
             "naaku", "nenu", "nundi", "unnayi", "ammali", "ammalaa", "aagalaa", "inka", "saruku", "raaka", "ekkuva", "takkuva",
-            "vachhe", "vache", "vachindi", "quintallu", "ammithe", "baagundi", "manchidi", "untundi", "dharalu", "dhara?", "ki", "ku"}
+            "vachhe", "vache", "vachindi", "quintallu", "ammithe", "baagundi", "manchidi", "untundi", "dharalu", "dhara?", "ki", "ku",
+            "ammeyala", "ammeyana", "ammeyyala", "nilva", "perigindha", "perigindi", "taggindha", "taggindi", "marindi", "emi",
+            "cheyochu", "nunchi", "ippudu", "konchem"}
+FROM_RE = re.compile(r"(?<![a-z])(from|nundi|nunchi)(?![a-z])|నుండి|నుంచి")
 
 INTENTS: list[tuple[str, list[str]]] = [
     ("best_market", ["where", "which market", "best market", "better market", "more money", "highest price", "best price",
+                     "best place", "place to sell",
                      "ekkada", "ye market", "e market", "edi manchi market", "ekkuva dhara", "ఎక్కడ", "ఏ మార్కెట్", "ఎక్కువ ధర", "మంచి మార్కెట్"]),
     ("sell_or_wait", ["sell or wait", "sell now", "or wait", "should i wait", "should i sell", "hold", "wait", "ammala", "aagala", "agala",
-                      "ammalaa", "aagalaa", "ammala aagala", "ippude ammali", "అమ్మాలా", "ఆగాలా", "ఇప్పుడే అమ్మ", "ఆగితే"]),
+                      "ammalaa", "aagalaa", "ammala aagala", "ippude ammali", "అమ్మాలా", "ఆగాలా", "ఇప్పుడే అమ్మ", "ఆగితే",
+                      "ammeyala", "ammeyana", "ammeyyala", "nilva", "store cheyala", "good time to sell", "should i keep", "keep my",
+                      "hold my", "అమ్మేయాలా", "అమ్మేయనా", "అమ్మితే మంచిదా", "నిల్వ", "ఆపాలా", "ఆగనా"]),
     ("forecast", ["next week", "forecast", "tomorrow", "coming days", "next 7", "next few days", "will", "predict", "expected", "expect",
                   "go up", "go down", "increase", "decrease", "perugutunda", "taggutunda", "perugutundi", "taggutundi", "vachhe vaaram",
                   "vache varam", "vacche vaaram", "repu", "ముందు రోజుల", "రేపు", "వచ్చే వారం", "వచ్చే రోజుల", "పెరుగుతుందా", "తగ్గుతుందా",
                   "పెరుగుతుంది", "తగ్గుతుంది", "అంచనా", "ఎలా ఉంటుంది"]),
-    ("arrivals", ["arrival", "arrivals", "supply", "how much came", "how much stock", "saruku", "raaka", "aavaka", "సరుకు", "రాక", "ఆవక"]),
+    ("arrivals", ["arrival", "arrivals", "arrived", "supply", "how much came", "how much stock", "saruku", "raaka", "aavaka",
+                  "సరుకు", "రాక", "ఆవక", "ఎన్ని టన్నుల", "వచ్చాయి"]),
     ("trend", ["trend", "going up", "going down", "moving", "how are", "how is", "last week", "past week", "rising", "falling",
-               "ela undi", "ela unnayi", "ఎలా ఉంది", "ఎలా ఉన్నాయి", "ధోరణి", "గత వారం"]),
+               "gone up", "gone down", "went up", "went down", "come down", "came down", "this month", "last month", "past month",
+               "changed", "moved", "perigindha", "perigindi", "taggindha", "taggindi", "marindi",
+               "ela undi", "ela unnayi", "ఎలా ఉంది", "ఎలా ఉన్నాయి", "ధోరణి", "గత వారం", "పెరిగిందా", "తగ్గిందా", "మారింది",
+               "మారిందా", "ఈ మధ్య", "గత నెల", "ఈ నెల"]),
     ("price", ["price", "prices", "rate", "rates", "dhara", "dara", "dharalu", "entha", "enta", "cost", "today", "ivala", "ivvala", "eroju",
                "bhav", "ధర", "ధరలు", "రేటు", "ఎంత", "ఈ రోజు", "ఇవాళ"]),
-    ("help", ["help", "hello", "hi", "namaskaram", "namaste", "what can you do", "నమస్కారం", "సహాయం", "ఏమి చేయగలవు"]),
+    ("help", ["help", "hello", "hi", "namaskaram", "namaste", "what can you do", "how to use", "emi cheyochu", "నమస్కారం", "సహాయం",
+              "ఏమి చేయగలవు", "ఏమేమి", "ఏం చేస్తుంది", "ఎలా వాడాలి"]),
 ]
 NEEDS_CROP = {"price", "trend", "forecast", "arrivals", "sell_or_wait", "best_market"}
 CONF_TE = {"high": "ఎక్కువ", "medium": "మధ్యస్థం", "low": "తక్కువ"}
-TREND_EN = {"rising": "rising", "falling": "falling", "steady": "steady"}
-TREND_TE = {"rising": "పెరుగుతోంది", "falling": "తగ్గుతోంది", "steady": "స్థిరంగా ఉంది"}
+TREND_EN = {"rising": "rising", "falling": "falling", "steady": "steady", "mixed": "going up and down"}
+TREND_TE = {"rising": "పెరుగుతోంది", "falling": "తగ్గుతోంది", "steady": "స్థిరంగా ఉంది", "mixed": "ఒడిదుడుకులుగా ఉంది"}
+
+
+def loc_te(m: dict) -> str:
+    """Telugu 'at <market>': the case suffix must not land on a bracket ('తిరుచానూరు (తిరుపతి) మార్కెట్‌లో')."""
+    return f"{m['te']} మార్కెట్‌లో" if "(" in m["te"] else m["te"] + "లో"
 DECISION_EN, DECISION_TE = "The decision is yours.", "నిర్ణయం మీదే."
 GUIDE_EN, GUIDE_TE = "This is a guide, not a guaranteed price.", "ఇది ఒక సూచన మాత్రమే, హామీ ధర కాదు."
 
@@ -126,7 +142,7 @@ def parse(question: str, store: Store) -> Parsed:
         p.lang = "te"
     crops = {c["id"]: [c["id"], c["en"], *c["aliases"]] for c in store.catalog["crops"]}
     markets = {m["id"]: [m["id"], m["en"], m["te"], *m["aliases"]] for m in store.catalog["markets"]}
-    places = {pl["id"]: [pl["en"].split(" (")[0]] for pl in store.places}
+    places = {pl["id"]: [pl["en"].split(" (")[0], *([pl["te"]] if pl.get("te") else []), *pl.get("aliases", [])] for pl in store.places}
     p.crop = _find_entity(text, tokens, crops)
     p.market = _find_entity(text, tokens, markets)
     p.place = _find_entity(text, tokens, places)
@@ -138,6 +154,9 @@ def parse(question: str, store: Store) -> Parsed:
         if any(_contains(text, tokens, w) for w in words):
             p.intent = intent
             break
+    p.extra["from_marker"] = bool(FROM_RE.search(text))
+    if p.intent in ("price", "unknown") and p.crop and p.quantity_qtl and p.extra["from_marker"]:
+        p.intent = "best_market"   # "12 quintals of onion from Nandyal" is a where-to-sell question
     if p.intent in ("unknown", "help") and (p.crop or p.market):
         p.intent = "price"
     return p
@@ -201,7 +220,8 @@ def compose(p: Parsed, lang: str, store: Store, origin: tuple[float, float] | No
                 ("I can tell you today's mandi price, the price trend, a 7-day price range and the best market after costs "
                  f"for tomato, onion and banana in {n} Andhra Pradesh markets. Try: \"Madanapalle lo tomato rate entha?\""), facts)
     if p.intent == "unknown" or (p.intent in NEEDS_CROP and not p.crop and not p.market):
-        mk = ", ".join((m["te"] if te else m["en"]) for m in cat["markets"])
+        names = [(m["te"] if te else m["en"]) for m in cat["markets"]]
+        mk = ", ".join(names[:8]) + ("…" if len(names) > 8 else "")
         return (f"క్షమించండి, మీ ప్రశ్న అర్థం కాలేదు. నేను టమాటా, ఉల్లిపాయ, అరటి ధరలు ఈ మార్కెట్లలో చెప్పగలను: {mk}. ఉదాహరణ: \"కర్నూలులో ఉల్లిపాయ ధర ఎంత?\""
                 if te else f"Sorry, I could not understand. I cover tomato, onion and banana in {mk}. Try: \"Onion price in Kurnool today?\"", facts)
 
@@ -214,57 +234,81 @@ def compose(p: Parsed, lang: str, store: Store, origin: tuple[float, float] | No
             m = store.markets[p.market]
             day = rows[0][1]["date"]
             items = ", ".join(f"{(c['te'] if te else c['en'])} {rs(r['modal'])}" for c, r in rows)
-            return ((f"{m['te']}లో {fd(day, te)}న ధరలు (క్వింటాల్‌కు): {items}." if te else f"Prices at {m['en']} on {fd(day, te)} (per quintal): {items}."), facts)
+            return ((f"{loc_te(m)} {fd(day, te)}న ధరలు (క్వింటాల్‌కు): {items}." if te else f"Prices at {m['en']} on {fd(day, te)} (per quintal): {items}."), facts)
         return ("ఏ పంట? నేను టమాటా, ఉల్లిపాయ, అరటి గురించి చెప్పగలను." if te else "Which crop? I cover tomato, onion and banana.", facts)
 
     c = store.crops[p.crop]
     cname = c["te"] if te else c["en"]
+    if p.intent == "best_market" and p.market and not store.has(p.crop, p.market):
+        p.place, p.market = p.place or p.market, None
     if p.market and not store.has(p.crop, p.market):
         m = store.markets[p.market]
         avail = ", ".join((store.markets[x]["te"] if te else store.markets[x]["en"]) for x in c["markets"])
-        return ((f"{m['te']}లో {c['te']} ధరలు మా వద్ద లేవు. {c['te']} కోసం మార్కెట్లు: {avail}." if te else
+        return ((f"{loc_te(m)} {c['te']} ధరలు మా వద్ద లేవు. {c['te']} కోసం మార్కెట్లు: {avail}." if te else
                  f"{c['en']} is not tracked at {m['en']}. Markets for {c['en']}: {avail}."), facts)
 
     if p.intent == "best_market":
-        origin_id = p.place or p.market or c["markets"][0]
-        place = next((pl for pl in store.places if pl["id"] == origin_id), None)
-        if origin:
-            lat, lon, oname = origin[0], origin[1], ("మీ ప్రాంతం" if te else "your location")
-        elif place:
+        note = ""
+        place = next((pl for pl in store.places if pl["id"] == p.place), None) if p.place else None
+        if place:                       # the town named in the question comes first
             lat, lon = place["lat"], place["lon"]
-            oname = store.markets[origin_id]["te"] if te and origin_id in store.markets else place["en"]
-        else:
-            mk = store.markets[origin_id]
+            oname = (place.get("te") or place["en"]) if te else place["en"].split(" (")[0]
+        elif origin:                    # then the pickup point the farmer saved in the app
+            lat, lon, oname = origin[0], origin[1], ("మీరు ఎంచుకున్న ప్రదేశం" if te else "your saved pickup point")
+        else:                           # never a silent assumption: say which starting point was used
+            mk = store.markets[p.market or c["markets"][0]]
             lat, lon, oname = mk["lat"], mk["lon"], (mk["te"] if te else mk["en"])
+            if not p.market:
+                if p.extra.get("from_marker"):
+                    note = (f" (మీ ఊరిని గుర్తించలేకపోయాం, అందుకే {oname} నుండి లెక్కించాం. దగ్గరి పట్టణం పేరుతో మళ్లీ అడగండి.)" if te else
+                            f" (I could not find your town, so this is calculated from {oname}. Ask again with a nearby town's name.)")
+                else:
+                    note = (f" (ఊరు చెప్పలేదు కాబట్టి {oname} నుండి లెక్కించాం.)" if te else
+                            f" (No starting town given, so this is calculated from {oname}.)")
         qty = p.quantity_qtl or 10
         cmp = compare_markets(store, p.crop, qty, lat, lon)
         facts["compare"] = cmp
         top = cmp["rows"][:3]
         mn = lambda mid: store.markets[mid]["te"] if te else store.markets[mid]["en"]  # noqa: E731
+        cross = c.get("compare_across_varieties", True)
+
+        def vlabel(r: dict) -> str:  # banana prices are only comparable within a variety, so say which one
+            if cross:
+                return ""
+            v = r.get("variety") or ("రకాల మధ్యస్థ ధర" if te else "median of varieties")
+            return f" [{v}]"
         q = f"{qty:g}"
         if te:
-            items = ", ".join(f"{i}. {mn(r['market'])} {rs(r['net_per_qtl'])} (మొత్తం {rs(r['net_total'])})" for i, r in enumerate(top, 1))
+            items = ", ".join(f"{i}. {mn(r['market'])}{vlabel(r)} {rs(r['net_per_qtl'])} (మొత్తం {rs(r['net_total'])})" for i, r in enumerate(top, 1))
             text = f"{oname} నుండి {q} క్వింటాళ్ల {cname}: రవాణా, కమీషన్ పోగా క్వింటాల్‌కు చేతికి వచ్చే డబ్బు: {items}."
         else:
-            items = ", ".join(f"{i}. {mn(r['market'])} {rs(r['net_per_qtl'])} (total {rs(r['net_total'])})" for i, r in enumerate(top, 1))
+            items = ", ".join(f"{i}. {mn(r['market'])}{vlabel(r)} {rs(r['net_per_qtl'])} (total {rs(r['net_total'])})" for i, r in enumerate(top, 1))
             text = f"For {q} quintals of {cname.lower()} from {oname}, money in hand per quintal after transport and commission: {items}."
+        if not top:
+            return ((f"{oname} నుండి 200 కి.మీ. లోపు తాజా {cname} ధర ఉన్న మార్కెట్ లేదు." if te else
+                     f"No market within 200 km of {oname} has a recent {cname.lower()} price."), facts)
         b = cmp["best_vs_nearest"]
-        if b and b["best"] != b["nearest"] and b["extra_total"] > 0:
-            text += (f" సమీప మార్కెట్ ({mn(b['nearest'])}) కంటే {mn(b['best'])}లో సుమారు {rs(b['extra_total'])} ఎక్కువ వస్తుంది."
+        if cmp.get("varieties_differ"):
+            text += (" ఈ మార్కెట్లు వేర్వేరు రకాల ధరలు చెబుతున్నాయి, కాబట్టి లాభాన్ని నేరుగా పోల్చలేం." if te else
+                     " These markets report different varieties, so the gain cannot be compared directly.")
+        elif b and b["best"] != b["nearest"] and b["extra_total"] > 0:
+            text += (f" సమీప మార్కెట్ ({mn(b['nearest'])}) కంటే {loc_te(store.markets[b['best']])} సుమారు {rs(b['extra_total'])} ఎక్కువ వస్తుంది."
                      if te else f" {mn(b['best'])} gives about {rs(b['extra_total'])} more than the nearest market ({mn(b['nearest'])}).")
         elif b:
             text += (f" సమీప మార్కెట్ {mn(b['nearest'])} ఖర్చుల తర్వాత కూడా మంచిది." if te else f" The nearest market, {mn(b['nearest'])}, is also the best after costs.")
         text += " రవాణా ఖర్చు అంచనా మాత్రమే." if te else " Transport cost is an estimate."
-        return text, facts
+        return text + note, facts
 
     if not p.market:
         if p.intent == "price":
             rows = sorted(store.latest_rows(p.crop), key=lambda r: -r["modal"])
             facts["prices"] = rows
             day = max(r["date"] for r in rows)
-            items = ", ".join(f"{(store.markets[r['market']]['te'] if te else store.markets[r['market']]['en'])} {rs(r['modal'])}" for r in rows)
+            items = ", ".join(f"{(store.markets[r['market']]['te'] if te else store.markets[r['market']]['en'])} {rs(r['modal'])}" for r in rows[:6])
+            if len(rows) > 6:
+                items += f" (మరో {len(rows) - 6} మార్కెట్లు యాప్‌లో)" if te else f" (and {len(rows) - 6} more markets in the app)"
             top = store.markets[rows[0]["market"]]
-            return ((f"{fd(day, te)}న {cname} ధరలు (క్వింటాల్‌కు): {items}. ఎక్కువ ధర {top['te']}లో ఉంది." if te else
+            return ((f"{fd(day, te)}న {cname} ధరలు (క్వింటాల్‌కు): {items}. ఎక్కువ ధర {loc_te(top)} ఉంది." if te else
                      f"{cname} prices on {fd(day, te)} (per quintal): {items}. Highest at {top['en']}."), facts)
         p.market = c["markets"][0]
         p.extra["default_market"] = True
@@ -282,7 +326,7 @@ def compose(p: Parsed, lang: str, store: Store, origin: tuple[float, float] | No
     if p.intent == "price":
         c7 = trend["change_7d_pct"]
         if te:
-            text = (f"{m['te']}లో {fd(price['date'], te)}న {c['te']} ధర క్వింటాల్‌కు {rs(price['modal'])} "
+            text = (f"{loc_te(m)} {fd(price['date'], te)}న {c['te']} ధర క్వింటాల్‌కు {rs(price['modal'])} "
                     f"(కనిష్ఠం {rs(price['min'])}, గరిష్ఠం {rs(price['max'])}).")
             if c7 is None or abs(c7) < 1:
                 text += " గత వారంతో పోలిస్తే ధర దాదాపు అదే ఉంది."
@@ -293,12 +337,16 @@ def compose(p: Parsed, lang: str, store: Store, origin: tuple[float, float] | No
                     f"(min {rs(price['min'])}, max {rs(price['max'])}).")
             text += (" About the same as last week." if c7 is None or abs(c7) < 1 else
                      f" {'Up' if c7 > 0 else 'Down'} {abs(c7):.1f}% from last week.")
+        frozen = (store.series(p.crop, p.market) or {}).get("frozen_since")
+        if frozen:
+            text += (f" (ఈ మార్కెట్ ధర {fd(frozen, True)} నుండి మూలం వద్ద మారలేదు; స్థానికంగా నిర్ధారించుకోండి.)" if te else
+                     f" (This market's price has not changed at the source since {fd(frozen)}; please check locally.)")
         return text + note, facts
 
     if p.intent == "trend":
         lab = trend["label"]
         if te:
-            text = f"{m['te']}లో {c['te']} ధర {TREND_TE[lab]}. 7 రోజుల్లో మార్పు: {signed(trend['change_7d_pct'])}, 30 రోజుల్లో: {signed(trend['change_30d_pct'])}."
+            text = f"{loc_te(m)} {c['te']} ధర {TREND_TE[lab]}. 7 రోజుల్లో మార్పు: {signed(trend['change_7d_pct'])}, 30 రోజుల్లో: {signed(trend['change_30d_pct'])}."
             if trend["down_days_last5"] >= 3:
                 text += f" గత 5 మార్కెట్ రోజుల్లో {trend['down_days_last5']} రోజులు ధర తగ్గింది."
             elif trend["up_days_last5"] >= 3:
@@ -322,7 +370,7 @@ def compose(p: Parsed, lang: str, store: Store, origin: tuple[float, float] | No
         if arr is None:
             return ("ఈ మార్కెట్‌కు సరుకు రాక సమాచారం అందుబాటులో లేదు." if te else "Arrival data is not available for this market.") + note, facts
         if te:
-            text = f"{m['te']}లో {fd(price['date'], te)}న {c['te']} సరుకు రాక {arr:g} టన్నులు."
+            text = f"{loc_te(m)} {fd(price['date'], te)}న {c['te']} సరుకు రాక {arr:g} టన్నులు."
             if a is not None:
                 text += f" గత వారంతో పోలిస్తే {abs(a):.1f}% {'పెరిగింది' if a > 0 else 'తగ్గింది'}."
         else:
@@ -339,7 +387,7 @@ def compose(p: Parsed, lang: str, store: Store, origin: tuple[float, float] | No
     if p.intent == "forecast":
         reason = fc["reasons"][0]["te" if te else "en"] if fc["reasons"] else None
         if te:
-            text = (f"{m['te']}లో {c['te']}: వచ్చే 7 రోజుల్లో ధర {rs(s['lo'])} నుండి {rs(s['hi'])} మధ్య ఉండే అవకాశం ఉంది, "
+            text = (f"{loc_te(m)} {c['te']}: వచ్చే 7 రోజుల్లో ధర {rs(s['lo'])} నుండి {rs(s['hi'])} వరకు ఉండే అవకాశం ఉంది, "
                     f"ఎక్కువగా {rs(s['point_mean'])} దగ్గర. నమ్మకం: {CONF_TE[fc['confidence']]}.")
             if reason:
                 text += f" ముఖ్య కారణం: {reason}."
@@ -363,14 +411,16 @@ def compose(p: Parsed, lang: str, store: Store, origin: tuple[float, float] | No
     here = next((r for r in cmp["rows"] if r["market"] == p.market), None)
     best = cmp["rows"][0] if cmp["rows"] else None
     hint = ""
-    if best and here and best["market"] != p.market and best["net_per_qtl"] > here["net_per_qtl"]:
+    comparable = bool(best and here) and (c.get("compare_across_varieties", True) or (
+        best.get("variety") and best.get("variety") == here.get("variety") and best.get("price_method") != "median"))
+    if best and here and comparable and best["market"] != p.market and best["net_per_qtl"] > here["net_per_qtl"]:
         extra = best["net_per_qtl"] - here["net_per_qtl"]
         bm = store.markets[best["market"]]
-        hint = (f" వేచి ఉండలేకపోతే, ఖర్చులు పోగా {bm['te']}లో క్వింటాల్‌కు సుమారు {rs(extra)} ఎక్కువ వస్తుంది." if te else
+        hint = (f" వేచి ఉండలేకపోతే, ఖర్చులు పోగా {loc_te(bm)} క్వింటాల్‌కు సుమారు {rs(extra)} ఎక్కువ వస్తుంది." if te else
                 f" If you cannot wait, {bm['en']} gives about {rs(extra)} more per quintal after costs.")
     if te:
-        text = (f"ఈ రోజు {m['te']}లో {c['te']} ధర క్వింటాల్‌కు {rs(price['modal'])} ({fd(price['date'], te)}). "
-                f"ఈ వారం: {rs(s['lo'])} నుండి {rs(s['hi'])} మధ్య ఉండే అవకాశం. {adv}{hint} {DECISION_TE}")
+        text = (f"ఈ రోజు {loc_te(m)} {c['te']} ధర క్వింటాల్‌కు {rs(price['modal'])} ({fd(price['date'], te)}). "
+                f"ఈ వారం: {rs(s['lo'])} నుండి {rs(s['hi'])} వరకు ఉండే అవకాశం. {adv}{hint} {DECISION_TE}")
     else:
         text = (f"Today {c['en']} at {m['en']} is {rs(price['modal'])} per quintal ({fd(price['date'], te)}). "
                 f"This week: likely {rs(s['lo'])} to {rs(s['hi'])}. {adv}{hint} {DECISION_EN}")

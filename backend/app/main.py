@@ -71,7 +71,12 @@ def prices_latest(crop: str = Query(...)):
 @app.get("/api/prices/{crop}/{market}")
 def prices(crop: str, market: str, days: int = Query(90, ge=7, le=1095)):
     s = _crop_market(crop, market)
+    ser = s.series(crop, market)
     return {"crop": crop, "market": market, "data_as_of": s.meta["data_as_of"], "source": s.source,
+            "variety": ser.get("variety", ""), "grade": ser.get("grade", ""), "price_method": ser.get("price_method", ""),
+            "varieties_today": ser.get("latest_varieties", []),
+            "main_varieties": ser.get("main_varieties", []), "frozen_since": ser.get("frozen_since"),
+            "last_report": ser.get("last_report"), "stale": s.stale(s.latest(crop, market)["date"]),
             "latest": s.latest(crop, market), "trend": s.trend(crop, market),
             "history": s.history(crop, market, days), "last_year": s.last_year(crop, market, days)}
 
@@ -85,8 +90,11 @@ def forecast_overview():
             fc = s.forecast(c["id"], r["market"]) or {}
             an = s.recent_anomaly(c["id"], r["market"])
             ok = fc.get("available")
+            ser = s.series(c["id"], r["market"]) or {}
             rows.append({"crop": c["id"], "market": r["market"], "date": r["date"], "modal": r["modal"], "change_7d_pct": r["change_7d_pct"],
-                         "trend": r["trend"], "arrivals_t": r["arrivals_t"],
+                         "trend": r["trend"], "arrivals_t": r["arrivals_t"], "stale": r["stale"],
+                         "frozen_since": ser.get("frozen_since"), "variety": ser.get("variety", ""),
+                         "price_method": ser.get("price_method", ""),
                          "point_mean": fc["summary"]["point_mean"] if ok else None, "lo": fc["summary"]["lo"] if ok else None,
                          "hi": fc["summary"]["hi"] if ok else None, "direction": fc["summary"]["direction"] if ok else None,
                          "confidence": fc.get("confidence"), "model": fc.get("model"),
@@ -111,13 +119,14 @@ class CompareIn(BaseModel):
     transport_rate_per_qtl_km: float | None = Field(None, ge=0, le=100)
     commission_pct: float | None = Field(None, ge=0, le=30)
     handling_per_qtl: float | None = Field(None, ge=0, le=10000)
+    max_km: float | None = Field(None, ge=10, le=2000)
 
 
 @app.post("/api/markets/compare")
 def markets_compare(body: CompareIn):
     s = _crop_market(body.crop)
     return compare_markets(s, body.crop, body.quantity_qtl, body.lat, body.lon, body.transport_rate_per_qtl_km,
-                           body.commission_pct, body.handling_per_qtl)
+                           body.commission_pct, body.handling_per_qtl, body.max_km)
 
 
 # ------------------------------------------------------------------ assistant

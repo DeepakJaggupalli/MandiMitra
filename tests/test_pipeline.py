@@ -27,7 +27,7 @@ def _raw(rows):
 def test_clean_rules():
     days = pd.date_range("2026-09-01", "2026-10-31")
     rows = [["Andhra Pradesh", "Kurnool", "Kurnool", "Onion", "Big", d, 1500, 2500, 2000, 300.0, "quintal", "X"] for d in days]
-    rows.append(["Andhra Pradesh", "Kurnool", "KARNOOL", "ONION", "Big", days[5], 1500, 2500, 2000, 300.0, "quintal", "X"])  # duplicate
+    rows.append(["Andhra Pradesh", "Kurnool", "Kurnool APMC", "ONION", "Big", days[5], 1500, 2500, 2000, 300.0, "quintal", "X"])  # same record, other spelling
     rows[10][6], rows[10][7] = 2600, 1500  # max below min
     rows[20][6:9] = [15, 25, 20]  # typed per kg
     rows.append(["Andhra Pradesh", "Kurnool", "Atlantis", "Onion", "Big", days[1], 1, 2, 1, 1.0, "quintal", "X"])  # unknown market
@@ -60,7 +60,7 @@ def test_ogd_paging_and_filter_fallback(monkeypatch):
         return {"records": rows[offset: offset + limit], "total": len(rows)}
 
     monkeypatch.setattr(ag, "_ogd_get", fake_get)
-    frames, used = ag._ogd_pull("x", "k", [{"state": "AP"}, {"State": "AP"}])
-    assert used == {"State": "AP"} and sum(len(f) for f in frames) == 25
-    out = ag.map_columns(frames[0])
+    rows_got, used, total = ag._ogd_pull("x", "k", [{"state": "AP"}, {"State": "AP"}])
+    assert used == {"State": "AP"} and len(rows_got) == 25 and total == 25
+    out = ag.map_columns(pd.DataFrame(rows_got))
     assert out.loc[0, "modal"] == 1500 and out.loc[0, "date"] == pd.Timestamp("2026-10-01")

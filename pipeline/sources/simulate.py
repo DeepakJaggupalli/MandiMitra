@@ -95,7 +95,7 @@ def simulate(catalog: dict, end: date, weather: pd.DataFrame | None = None) -> p
     for crop in catalog["crops"]:
         cid = crop["id"]
         p = CROP[cid]
-        mk = [m for m in crop["markets"] if m in MARKET[cid]]
+        mk = list(crop["markets"])
         region_rain = np.mean([rain_by_market[m] for m in mk], axis=0)
         rain5 = pd.Series(region_rain).rolling(5, min_periods=1).sum().values
 
@@ -117,7 +117,7 @@ def simulate(catalog: dict, end: date, weather: pd.DataFrame | None = None) -> p
         log_region = np.log(p["base"]) - p["elasticity"] * (smooth - smooth.mean()) + v + jumps + inflation
 
         for mid in mk:
-            offset, share, lag = MARKET[cid][mid]
+            offset, share, lag = MARKET[cid].get(mid, (0.0, 0.3, 1))
             r = _rng(cid, mid, "market")
             w = _ar1(r, n, 0.7, 0.035)
             lp = np.roll(log_region, lag)
@@ -126,7 +126,7 @@ def simulate(catalog: dict, end: date, weather: pd.DataFrame | None = None) -> p
             lo_s = r.uniform(*p["spread"], n)
             hi_s = r.uniform(p["spread"][0], p["spread"][1] * 1.15, n)
             arr = p["base_arr"] * share * np.exp(log_supply + r.normal(0, 0.18, n))
-            closed = markets[mid]["closed_weekday"]
+            closed = markets[mid].get("closed_weekday")
             dow = days.day_of_week.values
             if closed is not None:
                 arr = np.where(dow == (closed + 1) % 7, arr * 1.35, arr)
@@ -169,7 +169,7 @@ def _to_agmarknet_format(df: pd.DataFrame, catalog: dict) -> pd.DataFrame:
     n = len(out)
     # name variants (handled by the name-matching table)
     alt = r.random(n) < 0.08
-    out.loc[alt, "Market"] = df.loc[alt, "market"].map(lambda m: markets[m]["aliases"][1].title())
+    out.loc[alt, "Market"] = df.loc[alt, "market"].map(lambda m: (markets[m].get("data_names") or [markets[m]["en"]])[-1].upper())
     upper = r.random(n) < 0.05
     out.loc[upper, "Commodity"] = out.loc[upper, "Commodity"].str.upper()
     # swapped min/max

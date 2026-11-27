@@ -147,18 +147,51 @@ def conformal_q(scores: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     return lo, hi
 
 
-def direction_hits(pred: np.ndarray, act: np.ndarray, base: np.ndarray, min_move: float = 0.02) -> tuple[int, int]:
-    hits = total = 0
+THETA = 0.03         # a weekly move of +-3% is what the app calls "may rise" / "may fall"
+MIN_CALLS = 15       # need at least this many past up/down calls to judge a model's direction skill
+MIN_PRECISION = 0.6  # design target: direction right at least 6 times in 10
+
+
+def call_stats(pred: np.ndarray, act: np.ndarray, base: np.ndarray) -> tuple[int, int, int, int]:
+    """Calls the app would show, and how many came true:
+    - up/down: forecast week average beyond +-THETA of today; right if the actual week average moved >= 1% that way;
+    - no big change: forecast within +-THETA; right if the actual week average also stayed within +-THETA.
+    Returns (updown_calls, updown_right, flat_calls, flat_right)."""
+    calls = correct = flat = flat_right = 0
     for k in range(len(base)):
         a = act[k][np.isfinite(act[k])]
         if not len(a) or not np.isfinite(pred[k]).all():
             continue
-        move = a.mean() / base[k] - 1
-        if abs(move) < min_move:
+        pm = pred[k].mean() / base[k] - 1
+        am = a.mean() / base[k] - 1
+        if abs(pm) < THETA:
+            flat += 1
+            flat_right += int(abs(am) < THETA)
             continue
-        total += 1
-        hits += int(np.sign(pred[k].mean() / base[k] - 1) == np.sign(move))
-    return hits, total
+        calls += 1
+        correct += int(np.sign(am) == np.sign(pm) and abs(am) >= 0.01)
+    return calls, correct, flat, flat_right
+
+
+def skill(calls: int, right: int) -> bool:
+    return calls >= MIN_CALLS and right / calls >= MIN_PRECISION
+
+
+def choose_model(stats: dict) -> tuple[str, bool]:
+    """stats: {model: (mape, calls, correct)}. Lowest error wins; if that model has no proven direction skill and
+    another model is within 3% of its error and has, the other one is used (so the arrow is informative).
+    Returns (model, direction_ok)."""
+    ok = {m: v for m, v in stats.items() if np.isfinite(v[0])}
+
+    def skilled(m: str) -> bool:
+        return skill(ok[m][1], ok[m][2])
+
+    best = min(ok, key=lambda m: ok[m][0])
+    if not skilled(best):
+        alts = sorted((m for m in ok if m != best and skilled(m) and ok[m][0] <= ok[best][0] * 1.03), key=lambda m: ok[m][0])
+        if alts:
+            best = alts[0]
+    return best, skilled(best)
 
 
 # ---------------------------------------------------------------- main entry
@@ -179,9 +212,9 @@ def run_forecasts(panel: pd.DataFrame, catalog: dict, log) -> tuple[dict, dict, 
         s = s.reset_index(drop=True)
         dates = s["date"]
         rep = s["reported"].to_numpy()
-        cal_o = np.where(rep & (dates >= cal_start).to_numpy() & (dates < test_start).to_numpy())[0]
+        cal_o = np.where(rep & (dates >= cal_start).to_numpy() & (dates < test_start - pd.Timedelta(days=7)).to_numpy())[0]
         test_o = np.where(rep & (dates >= test_start).to_numpy())[0]
-        if len(cal_o) < 30 or len(test_o) < 20 or len(s) < 400:
+        if len(cal_o) < 20 or len(test_o) < 20 or len(s) < 400:
             per_series[(crop, market)] = None
             continue
         res = {}
@@ -205,21 +238,25 @@ def run_forecasts(panel: pd.DataFrame, catalog: dict, log) -> tuple[dict, dict, 
             rows.append(np.log(w["act"] / w["preds"][model]) / w["scale"])
         return np.vstack(rows) if rows else np.empty((0, H))
 
-    crops = sorted({c for c, _ in per_series})
+    crops = sorted({c for (c, _m), r in per_series.items() if r is not None})  # only crops with a real backtest
     q_cal = {(c, m): conformal_q(scores("cal", c, m)) for c in crops for m in MODELS}
     q_recent = {(c, m): conformal_q(scores("test", c, m)) for c in crops for m in MODELS}
 
     series_rows, all_pred, all_act, all_lo, all_hi = [], {m: [] for m in MODELS + ["selected"]}, [], [], []
-    dir_hits = dir_total = 0
-    horizon_err = {m: [[] for _ in HORIZONS] for m in MODELS + ["selected"]}
+    shown_calls = shown_correct = test_origins = flat_shown = flat_right = 0
     selected_prod = {}
+
+    def stats(w: dict, m: str) -> tuple:
+        return (mape(w["preds"][m], w["act"]), *call_stats(w["preds"][m], w["act"], w["base"]))
+
     for (crop, market), r in per_series.items():
         if r is None:
             continue
-        cal_mape = {m: mape(r["cal"]["preds"][m], r["cal"]["act"]) for m in MODELS}
-        cal_mape = {m: v for m, v in cal_mape.items() if np.isfinite(v)}
-        sel = min(cal_mape, key=cal_mape.get)
-        t = r["test"]
+        c, t = r["cal"], r["test"]
+        # the whole procedure is backtested: choose on the calibration window, score on the unseen test window
+        cal_stats = {m: stats(c, m) for m in MODELS}
+        sel, sel_dir_ok = choose_model(cal_stats)
+        sel_flat_ok = skill(cal_stats[sel][3], cal_stats[sel][4])
         test_mape = {m: mape(t["preds"][m], t["act"]) for m in MODELS}
         sel_pred = t["preds"][sel]
         qlo, qhi = q_cal[(crop, sel)]
@@ -227,21 +264,31 @@ def run_forecasts(panel: pd.DataFrame, catalog: dict, log) -> tuple[dict, dict, 
         hi = sel_pred * np.exp(qhi[None, :] * t["scale"])
         ok = np.isfinite(t["act"])
         cov = float(np.mean((t["act"][ok] >= lo[ok]) & (t["act"][ok] <= hi[ok])))
-        h_, n_ = direction_hits(sel_pred, t["act"], t["base"])
-        dir_hits += h_
-        dir_total += n_
+        calls_t, correct_t, flat_t, flat_k = call_stats(sel_pred, t["act"], t["base"])
+        test_origins += len(t["base"])
+        if sel_dir_ok:
+            shown_calls += calls_t
+            shown_correct += correct_t
+        if sel_flat_ok:
+            flat_shown += flat_t
+            flat_right += flat_k
         best_base = min(BASELINES, key=lambda m: test_mape[m])
         sel_test = mape(sel_pred, t["act"])
-        # model for today's forecast: lowest error over the last 240 days (calibration + test windows)
-        c = r["cal"]
-        recent = {m: mape(np.vstack([c["preds"][m], t["preds"][m]]), np.vstack([c["act"], t["act"]])) for m in MODELS}
-        recent = {m: v for m, v in recent.items() if np.isfinite(v)}
-        selected_prod[(crop, market)] = min(recent, key=recent.get)
+        # today's forecast: the same rule on the most recent 240 days (calibration + test)
+        both = {"act": np.vstack([c["act"], t["act"]]), "base": np.concatenate([c["base"], t["base"]]),
+                "preds": {m: np.vstack([c["preds"][m], t["preds"][m]]) for m in MODELS}}
+        prod_model, prod_dir_ok = choose_model({m: stats(both, m) for m in MODELS})
+        pc, pk, pf, pfk = call_stats(both["preds"][prod_model], both["act"], both["base"])
+        prod_flat_ok = skill(pf, pfk)
+        selected_prod[(crop, market)] = (prod_model, prod_dir_ok, prod_flat_ok)
         series_rows.append({"crop": crop, "market": market, "n_test": int(len(t["base"])),
-                            "production_model": selected_prod[(crop, market)],
+                            "production_model": prod_model, "direction_shown": bool(prod_dir_ok),
+                            "direction_calls_240d": pc, "direction_right_240d": pk,
+                            "flat_shown": bool(prod_flat_ok), "flat_calls_240d": pf, "flat_right_240d": pfk,
                             "mape": {**{m: round(v, 2) for m, v in test_mape.items() if np.isfinite(v)}, "selected": round(sel_test, 2)},
                             "selected": sel, "coverage": round(cov, 3),
-                            "direction_accuracy": round(h_ / n_, 3) if n_ else None,
+                            "direction_accuracy": round(correct_t / calls_t, 3) if (sel_dir_ok and calls_t) else None,
+                            "direction_calls": calls_t if sel_dir_ok else 0,
                             "improvement_pct": round((test_mape[best_base] - sel_test) / test_mape[best_base] * 100, 1)})
         for m in MODELS:
             all_pred[m].append(t["preds"][m])
@@ -250,6 +297,14 @@ def run_forecasts(panel: pd.DataFrame, catalog: dict, log) -> tuple[dict, dict, 
         all_lo.append(lo)
         all_hi.append(hi)
 
+    if not all_act:
+        log.add("forecast_agent", "run_models", "no crop-market pair has enough history for a backtest", level="warning")
+        empty = {m: None for m in MODELS + ["selected"]}
+        return ({"test_window": {"start": str(test_start.date()), "end": str(end.date()), "days": WINDOW},
+                 "calibration_window": {"start": str(cal_start.date()), "end": str(test_start.date()), "days": WINDOW},
+                 "model_labels": LABELS, "overall": {"mape": empty, "best_baseline": None, "improvement_pct": None, "coverage": None,
+                                                     "direction_accuracy": None, "direction_n": 0},
+                 "by_horizon": [], "series": [], "selection_counts": {}, "production_counts": {}}, {}, lgb_prod)
     act = np.vstack(all_act)
     overall = {m: round(mape(np.vstack(all_pred[m]), act), 2) for m in MODELS + ["selected"]}
     by_h = []
@@ -260,7 +315,7 @@ def run_forecasts(panel: pd.DataFrame, catalog: dict, log) -> tuple[dict, dict, 
     coverage = float(np.mean((act[ok] >= lo_all[ok]) & (act[ok] <= hi_all[ok])))
     best_baseline = min(BASELINES, key=lambda m: overall[m])
     improvement = (overall[best_baseline] - overall["selected"]) / overall[best_baseline] * 100
-    direction = dir_hits / dir_total if dir_total else 0.0
+    direction = shown_correct / shown_calls if shown_calls else None
     log.add("forecast_agent", "make_range", f"test coverage of 80% ranges: {coverage:.1%}; selected MAPE {overall['selected']} vs best baseline ({best_baseline}) {overall[best_baseline]}")
 
     report = {
@@ -268,24 +323,47 @@ def run_forecasts(panel: pd.DataFrame, catalog: dict, log) -> tuple[dict, dict, 
         "calibration_window": {"start": str(cal_start.date()), "end": str(test_start.date()), "days": WINDOW},
         "model_labels": LABELS,
         "overall": {"mape": overall, "best_baseline": best_baseline, "improvement_pct": round(improvement, 1),
-                    "coverage": round(coverage, 3), "direction_accuracy": round(direction, 3), "direction_n": dir_total},
+                    "coverage": round(coverage, 3),
+                    "direction_accuracy": round(direction, 3) if direction is not None else None, "direction_n": shown_calls,
+                    "direction_call_rate": round(shown_calls / test_origins, 3) if test_origins else 0.0,
+                    "flat_accuracy": round(flat_right / flat_shown, 3) if flat_shown else None, "flat_n": flat_shown},
         "by_horizon": by_h,
         "series": series_rows,
         "selection_counts": pd.Series([r["selected"] for r in series_rows]).value_counts().to_dict(),
         "production_counts": pd.Series([r["production_model"] for r in series_rows]).value_counts().to_dict(),
+        "direction_rule": (f"An up/down arrow is shown only where the model's past calls (weekly move beyond +-{int(THETA * 100)}%) "
+                           f"were right at least {int(MIN_PRECISION * 10)} times in 10 over the recent backtest (min {MIN_CALLS} calls); "
+                           "otherwise the app says there is no clear trend."),
         "selection_note": ("'selected' = model chosen on the calibration window and scored on the unseen test window; "
                            "'production_model' = model used for today's forecast, chosen on the last 240 days."),
+        "procedure_note": ("The model-selection rule was revised once (27 Nov 2026) after this test window had been seen: "
+                           "from 'lowest error only' (which scored 0.5% better than the last price) to the direction-aware rule. "
+                           "Treat the improvement figure as optimistic until it holds on weeks after 27 Nov 2026; the rule is now frozen."),
     }
 
     production = {}
     for (crop, market), s in panel.groupby(["crop", "market"], sort=False):
         s = s.reset_index(drop=True)
-        model = selected_prod.get((crop, market))
-        if model is None:
-            production[(crop, market)] = None
-            continue
+        model, dir_ok, flat_ok = selected_prod.get((crop, market), (None, False, False))
         last = len(s) - 1
         origin = np.array([last])
+        fallback = False
+        if model is None:
+            # Too little history for this market's own backtest. If it reports regularly and the crop's pooled LightGBM
+            # model (trained on the other markets) was backtested, use that model, clearly marked as low confidence.
+            rep = s["reported"].to_numpy()
+            recent_reports = int(rep[-60:].sum())
+            if int(rep.sum()) >= 60 and recent_reports >= 20 and lgb_prod.get(crop) and (crop, "lightgbm") in q_recent:
+                model, fallback = "lightgbm", True
+                # arrows only on this market's OWN track record: the pooled model as of the test cut, scored on its test days
+                dir_ok = flat_ok = False
+                own = np.where(rep & (s["date"] >= test_start).to_numpy())[0]
+                if len(own) and lgb_test.get(crop):
+                    n, k, fn, fk = call_stats(lgb_forecasts(s, own, lgb_test[crop]), actuals(s, own), s["modal_ff"].to_numpy()[own])
+                    dir_ok, flat_ok = skill(n, k), skill(fn, fk)
+            else:
+                production[(crop, market)] = None
+                continue
         if model in BASELINES:
             point = baseline_forecasts(s, origin)[model][0]
         elif model == "sarima":
@@ -297,6 +375,9 @@ def run_forecasts(panel: pd.DataFrame, catalog: dict, log) -> tuple[dict, dict, 
         sc = scale(s, origin)[0]
         qlo, qhi = q_recent[(crop, model)]
         production[(crop, market)] = {"model": model, "point": point, "lo": point * np.exp(qlo * sc),
-                                      "hi": point * np.exp(qhi * sc), "origin_row": s.iloc[last]}
-    log.add("forecast_agent", "run_models", f"production forecasts for {sum(v is not None for v in production.values())} series")
+                                      "hi": point * np.exp(qhi * sc), "origin_row": s.iloc[last], "fallback": fallback,
+                                      "direction_ok": bool(dir_ok), "flat_ok": bool(flat_ok)}
+    n_fb = sum(1 for v in production.values() if v is not None and v.get("fallback"))
+    log.add("forecast_agent", "run_models", f"production forecasts for {sum(v is not None for v in production.values())} series "
+                                            f"({n_fb} use the crop's pooled model because the market's own history is short)")
     return report, production, lgb_prod

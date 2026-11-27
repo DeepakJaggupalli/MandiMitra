@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { api, type OverviewRow } from '../api'
 import { useApp, useAsync } from '../state'
 import { fmtDate, rupees } from '../i18n'
+import type { Lang } from '../api'
 import { Async } from '../components/common'
 import { SpeakButton, spokenSummary } from '../components/Speak'
 import { favKey, useFavs } from '../favs'
@@ -12,23 +13,27 @@ export const CROP_ICON: Record<string, string> = { tomato: '🍅', onion: '🧅'
 export function DirectionPill({ direction, point }: { direction: OverviewRow['direction']; point?: number | null }) {
   const { t } = useApp()
   if (!direction) return <span className="dir dir-none">{t('noForecastShort')}</span>
-  const arrow = direction === 'up' ? '▲' : direction === 'down' ? '▼' : '▬'
-  const label = direction === 'up' ? t('likelyUp') : direction === 'down' ? t('likelyDown') : t('likelyFlat')
+  const arrow = direction === 'up' ? '▲' : direction === 'down' ? '▼' : direction === 'unclear' ? '?' : '▬'
+  const label =
+    direction === 'up' ? t('likelyUp') : direction === 'down' ? t('likelyDown') : direction === 'unclear' ? t('likelyUnclear') : t('likelyFlat')
+  const shownPoint = direction === 'unclear' ? null : point
   return (
     <span className={`dir dir-${direction}`}>
       <span aria-hidden="true">{arrow}</span> {label}
-      {point != null && <span className="dir-pt"> · {rupees(point)}</span>}
+      {shownPoint != null && <span className="dir-pt"> · {rupees(shownPoint)}</span>}
     </span>
   )
 }
 
-function Tile({ r }: { r: OverviewRow }) {
+function Tile({ r, asOf, lang }: { r: OverviewRow; asOf: string; lang: Lang }) {
   const { t, crop, market, cropName, marketName } = useApp()
+  const old = r.date !== asOf
   const { isFav, toggle } = useFavs()
   const key = favKey(r.crop, r.market)
   const c = crop(r.crop)
   const m = market(r.market)
-  const say = spokenSummary(c?.te ?? r.crop, c?.en ?? r.crop, m?.te ?? r.market, m?.en ?? r.market, r.modal, r.direction, r.point_mean)
+  const say = spokenSummary(c?.te ?? r.crop, c?.en ?? r.crop, m?.te ?? r.market, m?.en ?? r.market, r.modal, r.direction, r.point_mean,
+    old ? fmtDate(r.date, 'te', false) : null, old ? fmtDate(r.date, 'en', false) : null)
   const fav = isFav(key)
   return (
     <Link to={`/price/${r.crop}/${r.market}`} className="tile">
@@ -58,6 +63,12 @@ function Tile({ r }: { r: OverviewRow }) {
       <div className="tile-price">
         {rupees(r.modal)} <small>{t('perQuintal')}</small>
       </div>
+      {old && (
+        <div className="tile-date">
+          {t('priceOn', { date: fmtDate(r.date, lang, false) })}{' '}
+          {r.frozen_since ? <span className="chip chip-warn">{t('frozenChip')}</span> : r.stale ? <span className="chip chip-warn">{t('oldPrice')}</span> : null}
+        </div>
+      )}
       <div className="tile-next">
         <span className="muted">{t('next7')}:</span> <DirectionPill direction={r.direction} point={r.point_mean} />
       </div>
@@ -93,7 +104,7 @@ export function HomePage() {
                   <h2 className="sec-title">★ {t('favourites')}</h2>
                   <div className="tiles">
                     {favRows.map((r) => (
-                      <Tile key={`f-${r.crop}-${r.market}`} r={r} />
+                      <Tile key={`f-${r.crop}-${r.market}`} r={r} asOf={d.data_as_of} lang={lang} />
                     ))}
                   </div>
                 </section>
@@ -118,7 +129,7 @@ export function HomePage() {
                 </div>
                 <div className="tiles">
                   {shown.map((r) => (
-                    <Tile key={`${r.crop}-${r.market}`} r={r} />
+                    <Tile key={`${r.crop}-${r.market}`} r={r} asOf={d.data_as_of} lang={lang} />
                   ))}
                 </div>
               </section>
